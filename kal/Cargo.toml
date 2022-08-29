@@ -9,3 +9,8 @@ description = "Command Abstraction Layer"
 readme = "../README.md"
 
 [dependencies]
+kal-derive = { version = "0.1", optional = true }
+
+[features]
+derive = ["kal-derive"]
+default = ["derive"]

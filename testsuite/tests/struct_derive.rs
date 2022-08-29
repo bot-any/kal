@@ -1,5 +1,4 @@
 use kal::{Command, CommandOption, CommandOptionValueKind, CommandSpec};
-use kal_derive::Command;
 
 #[test]
 fn basic_struct() {

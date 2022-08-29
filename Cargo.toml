@@ -1,2 +1,2 @@
 [workspace]
-members = ["kal", "kal-derive"]
+members = ["kal", "kal-derive", "testsuite"]

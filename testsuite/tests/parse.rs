@@ -1,5 +1,4 @@
 use kal::{Command, CommandArgumentValue, CommandFragment};
-use kal_derive::Command;
 
 #[test]
 fn just_execute() {

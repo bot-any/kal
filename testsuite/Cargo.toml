@@ -1,0 +1,7 @@
+[package]
+name = "testsuite"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+kal = { path = "../kal", version = "0.1" }
