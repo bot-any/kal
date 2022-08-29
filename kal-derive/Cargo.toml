@@ -2,6 +2,11 @@
 name = "kal-derive"
 version = "0.1.0"
 edition = "2021"
+authors = ["RanolP <public.ranolp@gmail.com"]
+repository = "https://github.com/bot-any/kal"
+license = "MIT"
+description = "#[derive(Command)] macro for kal"
+readme = "../README.md"
 
 [lib]
 proc-macro = true
