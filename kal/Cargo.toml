@@ -1,6 +1,6 @@
 [package]
 name = "kal"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["RanolP <public.ranolp@gmail.com"]
 repository = "https://github.com/bot-any/kal"
@@ -9,7 +9,7 @@ description = "Command Abstraction Layer"
 readme = "../README.md"
 
 [dependencies]
-kal-derive = { version = "0.1", optional = true }
+kal-derive = { path = "../kal-derive", version = "0.1", optional = true }
 
 [features]
 derive = ["kal-derive"]
