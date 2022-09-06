@@ -1,6 +1,6 @@
 [package]
 name = "kal"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 authors = ["RanolP <public.ranolp@gmail.com"]
 repository = "https://github.com/bot-any/kal"
