@@ -1,17 +1,23 @@
 #[macro_export]
 macro_rules! command_group {
-    ($name:ident { $($children:ident,)* }) => {
-        pub enum $name {
-            $($children($children)),*
+    (
+        $vis:vis? enum $name:ident {
+            $(
+                $variant:ident($path:path)
+            ),*
+        }
+    ) => {
+        $vis enum $name {
+            $($variant($path)),*
         }
 
         impl $name {
             pub fn contains(name: &str) -> bool {
-                ::std::matches!(name, $(<$children as ::kal::Command>::NAME)|*)
+                ::std::matches!(name, $(<$path as ::kal::Command>::NAME)|*)
             }
 
             pub fn children_specs() -> ::std::vec::Vec<::kal::CommandSpec> {
-                ::std::vec![$(<$children as ::kal::Command>::spec()),*]
+                ::std::vec![$(<$path as ::kal::Command>::spec()),*]
             }
         }
 
@@ -25,7 +31,7 @@ macro_rules! command_group {
                     options: ::std::vec::Vec::new(),
                     subcommands: ::std::vec![
                         $(
-                            <$children as ::kal::Command>::spec(),
+                            <$path as ::kal::Command>::spec(),
                         )*
                     ],
                 }
@@ -36,8 +42,8 @@ macro_rules! command_group {
                     [::kal::CommandFragment::Select(name), rest @ ..] => {
                         match name.as_str() {
                             $(
-                                <$children as ::kal::Command>::NAME =>
-                                    <$children as ::kal::Command>::parse(rest).map($name::$children),
+                                <$path as ::kal::Command>::NAME =>
+                                    <$path as ::kal::Command>::parse(rest).map($name::$variant),
                             )*
                             _ => ::std::option::Option::None,
                         }
