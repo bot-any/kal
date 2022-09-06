@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! command_group {
     (
-        $vis:vis? enum $name:ident {
+        $vis:vis enum $name:ident {
             $(
                 $variant:ident($path:path)
             ),*
