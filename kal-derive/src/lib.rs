@@ -51,6 +51,7 @@ pub fn derive_command(item: TokenStream) -> TokenStream {
 
     let mut option_idents = Vec::new();
     let mut option_names = Vec::new();
+    let mut option_positions = Vec::new();
     let mut option_descriptions = Vec::new();
     let mut option_types = Vec::new();
 
@@ -82,6 +83,7 @@ pub fn derive_command(item: TokenStream) -> TokenStream {
 
                 option_idents.push(field_ident);
                 option_names.push(argument_config.name);
+                option_positions.push(option_positions.len());
                 option_descriptions.push(argument_config.description);
                 option_types.push(field.ty);
             }
@@ -94,6 +96,7 @@ pub fn derive_command(item: TokenStream) -> TokenStream {
                     Fields::Named(fields) => {
                         let mut inner_option_idents = Vec::new();
                         let mut inner_option_names = Vec::new();
+                        let mut inner_option_positions = Vec::new();
                         let mut inner_option_descriptions = Vec::new();
                         let mut inner_option_types = Vec::new();
                         for field in fields.named {
@@ -115,6 +118,7 @@ pub fn derive_command(item: TokenStream) -> TokenStream {
                             };
                             inner_option_idents.push(ident);
                             inner_option_names.push(argument_config.name);
+                            inner_option_positions.push(inner_option_positions.len());
                             inner_option_descriptions.push(argument_config.description);
                             inner_option_types.push(field.ty);
                         }
@@ -130,10 +134,11 @@ pub fn derive_command(item: TokenStream) -> TokenStream {
                             self_discovered.push(quote! {
                                 #name::#variant_name
                             });
-                            option_idents.extend(inner_option_idents);
-                            option_names.extend(inner_option_names);
-                            option_descriptions.extend(inner_option_descriptions);
-                            option_types.extend(inner_option_types);
+                            option_idents = inner_option_idents;
+                            option_names = inner_option_names;
+                            option_positions = inner_option_positions;
+                            option_descriptions = inner_option_descriptions;
+                            option_types = inner_option_types;
                         } else {
                             let command_name = match command_config.name {
                                 Some(command_name) => command_name,
@@ -195,6 +200,7 @@ pub fn derive_command(item: TokenStream) -> TokenStream {
                                     options: vec![#(::kal::CommandOption {
                                         name: #inner_option_names,
                                         description: #inner_option_descriptions,
+                                        position: #inner_option_positions,
                                         value: <#inner_option_types as ::kal::CommandOptionValueTy>::spec_kind(),
                                     }),*],
                                     subcommands: ::std::vec::Vec::new(),
@@ -327,6 +333,7 @@ pub fn derive_command(item: TokenStream) -> TokenStream {
                     options: ::std::vec![#(
                         ::kal::CommandOption {
                             name: #option_names,
+                            position: #option_positions,
                             description: #option_descriptions,
                             value: <#option_types as ::kal::CommandOptionValueTy>::spec_kind(),
                         }),*],

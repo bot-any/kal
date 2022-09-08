@@ -38,16 +38,19 @@ fn required_arguments() {
             options: vec![
                 CommandOption {
                     name: "s",
+                    position: 0,
                     description: "String",
                     value: CommandOptionValueKind::String,
                 },
                 CommandOption {
                     name: "i",
+                    position: 1,
                     description: "i64",
                     value: CommandOptionValueKind::Integer,
                 },
                 CommandOption {
                     name: "f",
+                    position: 2,
                     description: "f64",
                     value: CommandOptionValueKind::Double,
                 }
@@ -78,6 +81,7 @@ fn optional_arguments() {
             options: vec![
                 CommandOption {
                     name: "s",
+                    position: 0,
                     description: "String",
                     value: CommandOptionValueKind::Optional(Box::new(
                         CommandOptionValueKind::String
@@ -85,6 +89,7 @@ fn optional_arguments() {
                 },
                 CommandOption {
                     name: "i",
+                    position: 1,
                     description: "i64",
                     value: CommandOptionValueKind::Optional(Box::new(
                         CommandOptionValueKind::Integer
@@ -92,6 +97,7 @@ fn optional_arguments() {
                 },
                 CommandOption {
                     name: "f",
+                    position: 2,
                     description: "f64",
                     value: CommandOptionValueKind::Optional(Box::new(
                         CommandOptionValueKind::Double

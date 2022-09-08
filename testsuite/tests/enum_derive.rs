@@ -101,6 +101,7 @@ fn struct_style_enum() {
                     description: "a",
                     options: vec![CommandOption {
                         name: "s",
+                        position: 0,
                         description: "s",
                         value: CommandOptionValueKind::String,
                     },],
@@ -111,6 +112,7 @@ fn struct_style_enum() {
                     description: "b",
                     options: vec![CommandOption {
                         name: "s",
+                        position: 0,
                         description: "s",
                         value: CommandOptionValueKind::String,
                     },],

@@ -10,6 +10,7 @@ pub struct CommandSpec {
 #[derive(Debug, PartialEq)]
 pub struct CommandOption {
     pub name: &'static str,
+    pub position: usize,
     pub description: &'static str,
     pub value: CommandOptionValueKind,
 }
