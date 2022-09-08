@@ -1,6 +1,11 @@
 pub enum CommandFragment {
     Select(String),
-    Execute(Vec<(String, CommandArgumentValue)>),
+    Execute(Vec<CommandArgument>),
+}
+
+pub enum CommandArgument {
+    Named(String, CommandArgumentValue),
+    Positioned(usize, CommandArgumentValue),
 }
 
 #[derive(Clone)]

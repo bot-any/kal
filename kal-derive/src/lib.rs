@@ -171,15 +171,31 @@ pub fn derive_command(item: TokenStream) -> TokenStream {
                                     )*
             
                                     for argument in arguments {
-                                        match argument.0.as_str() {
-                                            #(
-                                                #inner_option_names => {
-                                                    #inner_option_idents = ::std::option::Option::Some(argument.1.clone().try_into().ok()?);
+                                        match argument {                
+                                            ::kal::CommandArgument::Named(name, value) => {
+                                                match name.as_str() {
+                                                    #(
+                                                        #option_names => {
+                                                            #option_idents = ::std::option::Option::Some(value.clone().try_into().ok()?);
+                                                        }
+                                                    )*
+                                                    _ => {
+                                                        continue;
+                                                    }
                                                 }
-                                            )*
-                                            _ => {
-                                                continue;
                                             }
+                                            ::kal::CommandArgument::Positioned(position, value) => {
+                                                match position {
+                                                    #(
+                                                        #option_positions => {
+                                                            #option_idents = ::std::option::Option::Some(value.clone().try_into().ok()?);
+                                                        }
+                                                    )*
+                                                    _ => {
+                                                        continue;
+                                                    }
+                                                }
+                                            }   
                                         }
                                     }
             
@@ -298,14 +314,30 @@ pub fn derive_command(item: TokenStream) -> TokenStream {
                 )*
 
                 for argument in arguments {
-                    match argument.0.as_str() {
-                        #(
-                            #option_names => {
-                                #option_idents = ::std::option::Option::Some(argument.1.clone().try_into().ok()?);
+                    match argument {
+                        ::kal::CommandArgument::Named(name, value) => {
+                            match name.as_str() {
+                                #(
+                                    #option_names => {
+                                        #option_idents = ::std::option::Option::Some(value.clone().try_into().ok()?);
+                                    }
+                                )*
+                                _ => {
+                                    continue;
+                                }
                             }
-                        )*
-                        _ => {
-                            continue;
+                        }
+                        ::kal::CommandArgument::Positioned(position, value) => {
+                            match position {
+                                #(
+                                    #option_positions => {
+                                        #option_idents = ::std::option::Option::Some(value.clone().try_into().ok()?);
+                                    }
+                                )*
+                                _ => {
+                                    continue;
+                                }
+                            }
                         }
                     }
                 }

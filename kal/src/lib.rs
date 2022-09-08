@@ -1,6 +1,6 @@
 pub use command::Command;
 pub use command_fragment::{
-    CommandArgumentValue, CommandArgumentValueTypeMismatchError, CommandFragment,
+    CommandArgument, CommandArgumentValue, CommandArgumentValueTypeMismatchError, CommandFragment,
 };
 pub use command_spec::{CommandOption, CommandOptionValueKind, CommandOptionValueTy, CommandSpec};
 pub use kal_derive::Command;

@@ -1,4 +1,4 @@
-use kal::{Command, CommandArgumentValue, CommandFragment};
+use kal::{Command, CommandArgument, CommandArgumentValue, CommandFragment};
 
 #[test]
 fn just_execute() {
@@ -64,12 +64,25 @@ fn optionful() {
             f: 3.141592
         }),
         A::parse(&[CommandFragment::Execute(vec![
-            (
+            CommandArgument::Named(
                 "s".to_string(),
                 CommandArgumentValue::String("string".to_string())
             ),
-            ("f".to_string(), CommandArgumentValue::F64(3.141592)),
-            ("i".to_string(), CommandArgumentValue::I64(64)),
+            CommandArgument::Named("f".to_string(), CommandArgumentValue::F64(3.141592)),
+            CommandArgument::Named("i".to_string(), CommandArgumentValue::I64(64)),
+        ]),])
+    );
+
+    assert_eq!(
+        Some(A {
+            s: "string".to_string(),
+            i: 64,
+            f: 3.141592
+        }),
+        A::parse(&[CommandFragment::Execute(vec![
+            CommandArgument::Positioned(0, CommandArgumentValue::String("string".to_string())),
+            CommandArgument::Positioned(1, CommandArgumentValue::I64(64)),
+            CommandArgument::Positioned(2, CommandArgumentValue::F64(3.141592)),
         ]),])
     );
 }
