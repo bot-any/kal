@@ -48,7 +48,7 @@ impl TryFrom<CommandArgumentValue> for i64 {
         match value {
             CommandArgumentValue::String(_) => Err(CommandArgumentValueTypeMismatchError {
                 expected: "i64".to_string(),
-                actual: "Stringn".to_string(),
+                actual: "String".to_string(),
             }),
             CommandArgumentValue::I64(v) => Ok(v),
             CommandArgumentValue::F64(_) => Err(CommandArgumentValueTypeMismatchError {
