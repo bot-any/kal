@@ -23,7 +23,7 @@ struct ArgumentConfig {
     description: String,
 }
 
-/// Derive [`Command`](`kal::Command`) trait for a struct or an enum.
+/// Derive Command trait from kal for a struct or an enum.
 #[proc_macro_derive(Command, attributes(command, argument))]
 pub fn derive_command(item: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(item as DeriveInput);
