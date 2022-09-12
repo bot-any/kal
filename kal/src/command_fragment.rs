@@ -10,20 +10,30 @@ pub enum CommandArgument {
 
 #[derive(Clone)]
 pub enum CommandArgumentValue {
+    /// The string type.
     String(String),
+    /// The i64 type.
     I64(i64),
+    /// The f64 type.
     F64(f64),
 }
 
+/// Failed to convert [`CommandArgumentValue`] to the type expected.
 #[derive(Debug)]
 pub struct CommandArgumentValueTypeMismatchError {
+    /// The type expected.
     pub expected: String,
+    /// The actual type accepted.
     pub actual: String,
 }
 
 impl core::fmt::Display for CommandArgumentValueTypeMismatchError {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        write!(f, "Expected {} but actual type is {}", self.expected, self.actual)
+        write!(
+            f,
+            "Expected {} but actual type is {}",
+            self.expected, self.actual
+        )
     }
 }
 

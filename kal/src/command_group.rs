@@ -1,12 +1,43 @@
+/// Make an enum implementing [`Command`](`crate::Command`)
+/// where its every variant have only one field implements [`Commnad`](`crate::Command`).
+/// The enum will provide a parse function matching each variant's name directly.
+///
+/// Example:
+/// ```rust
+/// # use kal::{Command, command_group, CommandFragment};
+/// # #[derive(Debug, PartialEq)]
+/// #[derive(Command)]
+/// #[command(name = "a", description = "")]
+/// struct A;
+///
+/// # #[derive(Debug, PartialEq)]
+/// #[derive(Command)]
+/// #[command(name = "b", description = "")]
+/// struct B;
+///
+///
+/// command_group! {
+/// #   #[derive(Debug, PartialEq)]
+///     enum Root {
+///         A(A),
+///         B(B)
+///     }
+/// }
+///
+/// assert_eq!(Some(Root::A(A)), Root::parse(&[CommandFragment::Select("a".to_string()), CommandFragment::Execute(vec![])]));
+/// assert_eq!(Some(Root::B(B)), Root::parse(&[CommandFragment::Select("b".to_string()), CommandFragment::Execute(vec![])]));
+/// assert_eq!(None, Root::parse(&[CommandFragment::Select("c".to_string()), CommandFragment::Execute(vec![])]));
 #[macro_export]
 macro_rules! command_group {
     (
+        $(#[$attrs:meta])*
         $vis:vis enum $name:ident {
             $(
                 $variant:ident($path:path)
             ),*
         }
     ) => {
+        $(#[$attrs])*
         $vis enum $name {
             $($variant($path)),*
         }
