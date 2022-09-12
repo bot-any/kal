@@ -1,17 +1,20 @@
+//! # kal-derive
+//!
+//! Provide conveinence `#[derive(Command)]` macros for [kal](https://crates.io/crates/kal).
+
+#![deny(missing_docs)]
+
+mod codegen;
+mod config;
+mod error;
+
+use codegen::command_option_codegen::{CommandOption, CommandOptionsExt};
+use config::command_config::CommandConfig;
 use darling::{FromDeriveInput, FromField, FromVariant};
+use error::Error;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Fields};
-
-#[derive(FromDeriveInput, FromVariant)]
-#[darling(attributes(command))]
-struct CommandConfig {
-    name: Option<String>,
-    description: Option<String>,
-
-    #[darling(rename = "self")]
-    for_self: Option<bool>,
-}
 
 #[derive(FromField)]
 #[darling(attributes(argument))]
@@ -20,40 +23,25 @@ struct ArgumentConfig {
     description: String,
 }
 
+/// Derive [`Command`](`kal::Command`) trait for a struct or an enum.
 #[proc_macro_derive(Command, attributes(command, argument))]
 pub fn derive_command(item: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(item as DeriveInput);
 
-    let root_command_config = match CommandConfig::from_derive_input(&derive_input) {
-        Ok(root_config) => root_config,
-        Err(e) => return TokenStream::from(e.write_errors()),
-    };
-    let root_command_name = match root_command_config.name {
-        Some(command_name) => command_name,
-        None => {
-            return TokenStream::from(
-                syn::Error::new_spanned(derive_input.ident, "#[command] attribute requires a name")
-                    .into_compile_error(),
-            )
-        }
-    };
-    let root_command_description = match root_command_config.description {
-        Some(command_description) => command_description,
-        None => {
-            return TokenStream::from(
-                syn::Error::new_spanned(derive_input.ident, "#[command] attribute requires a description")
-                    .into_compile_error(),
-            )
-        }
-    };
+    match actual_derive_command(derive_input) {
+        Ok(stream) => stream,
+        Err(error) => TokenStream::from(error),
+    }
+}
+
+fn actual_derive_command(derive_input: DeriveInput) -> crate::error::Result<TokenStream> {
+    let root_command_config = CommandConfig::from_derive_input(&derive_input)?;
+    let (root_command_name, root_command_description) =
+        root_command_config.prepare(&derive_input.ident)?;
 
     let name = derive_input.ident;
 
-    let mut option_idents = Vec::new();
-    let mut option_names = Vec::new();
-    let mut option_positions = Vec::new();
-    let mut option_descriptions = Vec::new();
-    let mut option_types = Vec::new();
+    let mut options = Vec::new();
 
     let mut subcommands = Vec::new();
     let mut subcommands_named_fields_match_arms = Vec::new();
@@ -67,25 +55,19 @@ pub fn derive_command(item: TokenStream) -> TokenStream {
                 #name
             });
             for field in data.fields {
-                let argument_config = match ArgumentConfig::from_field(&field) {
-                    Ok(argument_config) => argument_config,
-                    Err(e) => return TokenStream::from(e.write_errors()),
-                };
-                let field_ident = match field.ident {
-                    Some(name) => name,
-                    None => {
-                        return TokenStream::from(
-                            syn::Error::new_spanned(field, "enum variant field must have a name")
-                                .into_compile_error(),
-                        )
-                    }
-                };
+                let argument_config = ArgumentConfig::from_field(&field)?;
+                let field_ident = field
+                    .ident
+                    .clone()
+                    .ok_or(Error::new(&field, "enum variant field must have a name"))?;
 
-                option_idents.push(field_ident);
-                option_names.push(argument_config.name);
-                option_positions.push(option_positions.len());
-                option_descriptions.push(argument_config.description);
-                option_types.push(field.ty);
+                options.push(CommandOption {
+                    ident: field_ident,
+                    name: argument_config.name,
+                    position: options.len(),
+                    description: argument_config.description,
+                    ty: field.ty,
+                });
             }
         }
         syn::Data::Enum(data) => {
@@ -94,145 +76,57 @@ pub fn derive_command(item: TokenStream) -> TokenStream {
 
                 match variant.fields {
                     Fields::Named(fields) => {
-                        let mut inner_option_idents = Vec::new();
-                        let mut inner_option_names = Vec::new();
-                        let mut inner_option_positions = Vec::new();
-                        let mut inner_option_descriptions = Vec::new();
-                        let mut inner_option_types = Vec::new();
+                        let mut inner_options = Vec::new();
                         for field in fields.named {
-                            let argument_config = match ArgumentConfig::from_field(&field) {
-                                Ok(argument_config) => argument_config,
-                                Err(e) => return TokenStream::from(e.write_errors()),
-                            };
-                            let ident = match field.ident {
-                                Some(name) => name,
-                                None => {
-                                    return TokenStream::from(
-                                        syn::Error::new_spanned(
-                                            field,
-                                            "enum variant field must have a name",
-                                        )
-                                        .into_compile_error(),
-                                    )
-                                }
-                            };
-                            inner_option_idents.push(ident);
-                            inner_option_names.push(argument_config.name);
-                            inner_option_positions.push(inner_option_positions.len());
-                            inner_option_descriptions.push(argument_config.description);
-                            inner_option_types.push(field.ty);
+                            let argument_config = ArgumentConfig::from_field(&field)?;
+                            let ident = field
+                                .ident
+                                .clone()
+                                .ok_or(Error::new(&field, "enum variant field must have a name"))?;
+                            inner_options.push(CommandOption {
+                                ident,
+                                name: argument_config.name,
+                                position: inner_options.len(),
+                                description: argument_config.description,
+                                ty: field.ty,
+                            });
                         }
 
-                        let command_config = match command_config {
-                            Ok(config) => config,
-                            Err(e) => return TokenStream::from(e.write_errors()),
-                        };
-
-                        let variant_name = variant.ident;
+                        let command_config = command_config?;
+                        let variant_ident = variant.ident;
+                        let variant_full_name = quote! { #name::#variant_ident };
 
                         if command_config.for_self.unwrap_or(false) {
-                            self_discovered.push(quote! {
-                                #name::#variant_name
-                            });
-                            option_idents = inner_option_idents;
-                            option_names = inner_option_names;
-                            option_positions = inner_option_positions;
-                            option_descriptions = inner_option_descriptions;
-                            option_types = inner_option_types;
+                            self_discovered.push(variant_full_name);
+                            options = inner_options;
                         } else {
-                            let command_name = match command_config.name {
-                                Some(command_name) => command_name,
-                                None => {
-                                    return TokenStream::from(
-                                        syn::Error::new_spanned(
-                                            variant_name,
-                                            "#[command] attribute requires a name",
-                                        )
-                                        .into_compile_error(),
-                                    )
-                                }
-                            };
-                            let command_description = match command_config.description {
-                                Some(command_description) => command_description,
-                                None => {
-                                    return TokenStream::from(
-                                        syn::Error::new_spanned(
-                                            variant_name,
-                                            "#[command] attribute requires a description",
-                                        )
-                                        .into_compile_error(),
-                                    )
-                                }
-                            };
-                            subcommands_named_fields_match_arms.push(quote! {
-                                #command_name => {
-                                    #(
-                                        let mut #inner_option_idents: ::std::option::Option<#inner_option_types> = <#inner_option_types as ::kal::CommandOptionValueTy>::default();
-                                    )*
-            
-                                    for argument in arguments {
-                                        match argument {                
-                                            ::kal::CommandArgument::Named(name, value) => {
-                                                match name.as_str() {
-                                                    #(
-                                                        #option_names => {
-                                                            #option_idents = ::std::option::Option::Some(value.clone().try_into().ok()?);
-                                                        }
-                                                    )*
-                                                    _ => {
-                                                        continue;
-                                                    }
-                                                }
-                                            }
-                                            ::kal::CommandArgument::Positioned(position, value) => {
-                                                match position {
-                                                    #(
-                                                        #option_positions => {
-                                                            #option_idents = ::std::option::Option::Some(value.clone().try_into().ok()?);
-                                                        }
-                                                    )*
-                                                    _ => {
-                                                        continue;
-                                                    }
-                                                }
-                                            }   
-                                        }
-                                    }
-            
-                                    match (#(#inner_option_idents),*) {
-                                        (#(::std::option::Option::Some(#inner_option_idents)),*) => {
-                                            ::std::option::Option::Some(#name::#variant_name {
-                                                #(#inner_option_idents),*
-                                            })
-                                        }
-                                        _ => ::std::option::Option::None,
-                                    }
-                                }
-                            });
+                            let (command_name, command_description) =
+                                command_config.prepare(&variant_full_name)?;
+
+                            let inner_options_kal: Vec<_> =
+                                inner_options.iter().map(|opt| opt.kal_option()).collect();
                             subcommands.push(quote! {
                                 ::kal::CommandSpec {
                                     name: #command_name,
                                     description: #command_description,
-                                    options: vec![#(::kal::CommandOption {
-                                        name: #inner_option_names,
-                                        description: #inner_option_descriptions,
-                                        position: #inner_option_positions,
-                                        value: <#inner_option_types as ::kal::CommandOptionValueTy>::spec_kind(),
-                                    }),*],
+                                    options: vec![#(#inner_options_kal),*],
                                     subcommands: ::std::vec::Vec::new(),
                                 }
+                            });
+
+                            let inner_options_execute_work =
+                                inner_options.make_execute_work(variant_full_name);
+                            subcommands_named_fields_match_arms.push(quote! {
+                                #command_name => #inner_options_execute_work
                             });
                         }
                     }
                     Fields::Unnamed(fields) => {
                         if fields.unnamed.len() != 1 {
-                            return TokenStream::from(
-                                syn::Error::new_spanned(
-                                    fields,
-                                    "Unnamed enum variant must have one field",
-                                )
-                                .into_compile_error(),
-                            );
+                            return Err(Error::new(
+                                fields,
+                                "Unnamed enum variant must have one field",
+                            ));
                         }
                         let variant_name = variant.ident;
                         let ty = &fields.unnamed[0].ty;
@@ -246,35 +140,11 @@ pub fn derive_command(item: TokenStream) -> TokenStream {
                         });
                     }
                     Fields::Unit => {
-                        let command_config = match command_config {
-                            Ok(root_config) => root_config,
-                            Err(e) => return TokenStream::from(e.write_errors()),
-                        };
+                        let command_config = command_config?;
 
-                        let command_name = match command_config.name {
-                            Some(command_name) => command_name,
-                            None => {
-                                return TokenStream::from(
-                                    syn::Error::new_spanned(
-                                        variant.ident,
-                                        "#[command] attribute requires a name",
-                                    )
-                                    .into_compile_error(),
-                                )
-                            }
-                        };
-                        let command_description = match command_config.description {
-                            Some(command_description) => command_description,
-                            None => {
-                                return TokenStream::from(
-                                    syn::Error::new_spanned(
-                                        variant.ident,
-                                        "#[command] attribute requires a description",
-                                    )
-                                    .into_compile_error(),
-                                )
-                            }
-                        };
+                        let command_name = command_config.name_or_error_from(&variant.ident)?;
+                        let command_description =
+                            command_config.description_or_error_from(&variant.ident)?;
                         subcommands.push(quote! {
                             ::kal::CommandSpec {
                                 name: #command_name,
@@ -288,73 +158,30 @@ pub fn derive_command(item: TokenStream) -> TokenStream {
             }
         }
         syn::Data::Union(data) => {
-            return TokenStream::from(
-                syn::Error::new_spanned(data.union_token, "Cannot derive Command for union")
-                    .into_compile_error(),
-            )
+            return Err(Error::new(
+                data.union_token,
+                "Cannot derive Command for union",
+            ))
         }
     };
 
-
     if self_discovered.len() > 1 {
-        return TokenStream::from(
-            syn::Error::new_spanned(
-                &self_discovered[0],
-                "Cannot set #[command(self)] more than once",
-            )
-            .into_compile_error(),
-        );
+        return Err(Error::new(
+            &self_discovered[0],
+            "Cannot set #[command(self)] more than once",
+        ));
     }
 
+    let options_kal: Vec<_> = options.iter().map(|opt| opt.kal_option()).collect();
+
     let self_arm = self_discovered.first().map(|self_token| {
-        Some(quote! {
-            [::kal::CommandFragment::Execute(arguments)] => {
-                #(
-                    let mut #option_idents: ::std::option::Option<#option_types> = <#option_types as ::kal::CommandOptionValueTy>::default();
-                )*
-
-                for argument in arguments {
-                    match argument {
-                        ::kal::CommandArgument::Named(name, value) => {
-                            match name.as_str() {
-                                #(
-                                    #option_names => {
-                                        #option_idents = ::std::option::Option::Some(value.clone().try_into().ok()?);
-                                    }
-                                )*
-                                _ => {
-                                    continue;
-                                }
-                            }
-                        }
-                        ::kal::CommandArgument::Positioned(position, value) => {
-                            match position {
-                                #(
-                                    #option_positions => {
-                                        #option_idents = ::std::option::Option::Some(value.clone().try_into().ok()?);
-                                    }
-                                )*
-                                _ => {
-                                    continue;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                match (#(#option_idents),*) {
-                    (#(::std::option::Option::Some(#option_idents)),*) => {
-                        ::std::option::Option::Some(#self_token {
-                            #(#option_idents),*
-                        })
-                    }
-                    _ => ::std::option::Option::None,
-                }
-            }
-        })
+        let work = options.make_execute_work(self_token);
+        quote! {
+            [::kal::CommandFragment::Execute(arguments)] => #work
+        }
     });
 
-    quote! {
+    Ok(quote! {
         impl ::kal::Command for #name {
             const NAME: &'static str = #root_command_name;
 
@@ -362,13 +189,7 @@ pub fn derive_command(item: TokenStream) -> TokenStream {
                 ::kal::CommandSpec {
                     name: #root_command_name,
                     description: #root_command_description,
-                    options: ::std::vec![#(
-                        ::kal::CommandOption {
-                            name: #option_names,
-                            position: #option_positions,
-                            description: #option_descriptions,
-                            value: <#option_types as ::kal::CommandOptionValueTy>::spec_kind(),
-                        }),*],
+                    options: ::std::vec![#(#options_kal),*],
                     subcommands: ::std::vec![#(#subcommands),*],
                 }
             }
@@ -398,5 +219,5 @@ pub fn derive_command(item: TokenStream) -> TokenStream {
             }
         }
     }
-    .into()
+    .into())
 }
