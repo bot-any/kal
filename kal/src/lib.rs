@@ -1,7 +1,7 @@
 //! # kal
 //!
 //! Command Abstraction Layer for bot libraries
-#![warn(missing_docs)]
+#![deny(missing_docs)]
 
 pub use command::Command;
 pub use command_fragment::{

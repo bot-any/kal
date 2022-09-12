@@ -1,19 +1,30 @@
+/// The fragment of user command
 pub enum CommandFragment {
+    /// Select subcommand
     Select(String),
+
+    /// Execute command with arguments provided
     Execute(Vec<CommandArgument>),
 }
 
+/// Command argument
 pub enum CommandArgument {
+    /// Named argument
     Named(String, CommandArgumentValue),
+
+    /// Positional argument
     Positioned(usize, CommandArgumentValue),
 }
 
+/// The actual argument value
 #[derive(Clone)]
 pub enum CommandArgumentValue {
     /// The string type.
     String(String),
+
     /// The i64 type.
     I64(i64),
+
     /// The f64 type.
     F64(f64),
 }
@@ -23,6 +34,7 @@ pub enum CommandArgumentValue {
 pub struct CommandArgumentValueTypeMismatchError {
     /// The type expected.
     pub expected: String,
+
     /// The actual type accepted.
     pub actual: String,
 }
