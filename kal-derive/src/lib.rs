@@ -59,7 +59,7 @@ fn actual_derive_command(derive_input: DeriveInput) -> crate::error::Result<Toke
                 let field_ident = field
                     .ident
                     .clone()
-                    .ok_or(Error::new(&field, "enum variant field must have a name"))?;
+                    .ok_or_else(|| Error::new(&field, "enum variant field must have a name"))?;
 
                 options.push(CommandOption {
                     ident: field_ident,
@@ -79,10 +79,9 @@ fn actual_derive_command(derive_input: DeriveInput) -> crate::error::Result<Toke
                         let mut inner_options = Vec::new();
                         for field in fields.named {
                             let argument_config = ArgumentConfig::from_field(&field)?;
-                            let ident = field
-                                .ident
-                                .clone()
-                                .ok_or(Error::new(&field, "enum variant field must have a name"))?;
+                            let ident = field.ident.clone().ok_or_else(|| {
+                                Error::new(&field, "enum variant field must have a name")
+                            })?;
                             inner_options.push(CommandOption {
                                 ident,
                                 name: argument_config.name,
