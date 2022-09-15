@@ -12,5 +12,8 @@ readme = "../README.md"
 kal-derive = { path = "../kal-derive", version = "0.2", optional = true }
 
 [features]
-derive = ["kal-derive"]
 default = ["derive"]
+full = ["derive", "lex"]
+
+derive = ["dep:kal-derive"]
+lex = ["kal-derive?/lex"]

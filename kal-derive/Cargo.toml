@@ -17,3 +17,6 @@ proc-macro = true
 darling = "0.14.1"
 syn = "1.0.99"
 quote = "1.0.21"
+
+[features]
+lex = []
