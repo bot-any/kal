@@ -73,7 +73,10 @@ fn lex_quote() {
 #[test]
 fn lex_named() {
     for (src, result) in [
-        ("a=", Err(CommandLexError::NamedProhibitsWhitespace(1, "="))),
+        (
+            "a=",
+            Err(CommandLexError::NamedProhibitsWhitespace(0, "a=")),
+        ),
         (
             "a=b",
             Ok(vec![CommandToken::Named(
@@ -83,7 +86,7 @@ fn lex_named() {
         ),
         (
             "a=b=c",
-            Err(CommandLexError::NamedCannotContainNamed(1, "=b=c")),
+            Err(CommandLexError::NamedCannotContainNamed(0, "a=b=c")),
         ),
     ] {
         let tokens: Result<Vec<_>, _> = CommandLexer::new(src).collect();

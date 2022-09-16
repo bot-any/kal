@@ -40,6 +40,7 @@ impl std::error::Error for CommandLexError<'_> {}
 pub struct CommandLexer<'a> {
     source: &'a str,
     iter: Peekable<CharIndices<'a>>,
+    failed: bool,
 }
 
 impl<'a> CommandLexer<'a> {
@@ -47,6 +48,7 @@ impl<'a> CommandLexer<'a> {
         CommandLexer {
             source,
             iter: source.char_indices().peekable(),
+            failed: false,
         }
     }
 }
@@ -74,7 +76,7 @@ impl<'a> CommandLexer<'a> {
         let src_first = match self.iter.next() {
             None => {
                 return Some(Err(CommandLexError::UnclosedQuote(
-                    self.source.len(),
+                    first,
                     &self.source[first..],
                 )))
             }
@@ -166,14 +168,14 @@ impl<'a> CommandLexer<'a> {
                             let token = match self.next() {
                                 Some(Ok(CommandToken::Whitespace(_))) | None => {
                                     return Some(Err(CommandLexError::NamedProhibitsWhitespace(
-                                        i,
-                                        &self.source[i..],
+                                        first,
+                                        &self.source[first..],
                                     )))
                                 }
                                 Some(Ok(CommandToken::Named(..))) => {
                                     return Some(Err(CommandLexError::NamedCannotContainNamed(
-                                        i,
-                                        &self.source[i..],
+                                        first,
+                                        &self.source[first..],
                                     )))
                                 }
                                 Some(Ok(expr)) => expr,
@@ -220,12 +222,22 @@ impl<'a> Iterator for CommandLexer<'a> {
     type Item = Result<CommandToken<'a>, CommandLexError<'a>>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        if self.failed {
+            return None;
+        }
+
         let (_, ch) = self.iter.peek()?;
 
-        match ch {
+        let res = match ch {
             ch if ch.is_whitespace() => self.next_whitespace(),
             '"' | '\'' => self.next_quote(),
             _ => self.next_raw_string_or_named(),
+        };
+
+        if res.as_ref().map(|res| res.is_err()).unwrap_or(false) {
+            self.failed = true;
         }
+
+        res
     }
 }

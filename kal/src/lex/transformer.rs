@@ -174,7 +174,11 @@ where
                     Some(Ok(mut token)) => loop {
                         match token {
                             CommandToken::RawString(s, _) => greedy.push_str(s),
-                            CommandToken::Whitespace(s) => greedy.push_str(s),
+                            CommandToken::Whitespace(s) => {
+                                if !greedy.is_empty() {
+                                    greedy.push_str(s);
+                                }
+                            }
                             CommandToken::QuotedString(open, value, close) => {
                                 greedy.push_str(open);
                                 greedy.push_str(&value);

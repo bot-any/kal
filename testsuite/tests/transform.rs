@@ -83,6 +83,14 @@ fn transform_argument() {
                 }]),
             );
 
+            map.insert(
+                "greedy",
+                TransformHint::Execute(vec![TransformHintPart {
+                    required: true,
+                    kind: TransformHintKind::StringGreedy,
+                }]),
+            );
+
             map
         }),
     };
@@ -99,7 +107,7 @@ fn transform_argument() {
         ]),
         fragments
     );
-    
+
     let lexer = CommandLexer::new("float 1.3");
     let fragments: Result<Vec<_>, _> = transformer.transform(lexer).collect();
     assert_eq!(
@@ -112,7 +120,7 @@ fn transform_argument() {
         ]),
         fragments
     );
-    
+
     let lexer = CommandLexer::new("string aaa");
     let fragments: Result<Vec<_>, _> = transformer.transform(lexer).collect();
     assert_eq!(
@@ -121,6 +129,19 @@ fn transform_argument() {
             CommandFragment::Execute(vec![CommandArgument::Positioned(
                 0,
                 CommandArgumentValue::String("aaa".to_string())
+            )]),
+        ]),
+        fragments
+    );
+
+    let lexer = CommandLexer::new("greedy aa 1 a= cq \" wa");
+    let fragments: Result<Vec<_>, _> = transformer.transform(lexer).collect();
+    assert_eq!(
+        Ok(vec![
+            CommandFragment::Select("greedy".to_string()),
+            CommandFragment::Execute(vec![CommandArgument::Positioned(
+                0,
+                CommandArgumentValue::String("aa 1 a= cq \" wa".to_string())
             )]),
         ]),
         fragments
