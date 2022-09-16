@@ -7,14 +7,13 @@
 use codegen::command_option_codegen::{CommandOption, CommandOptionsExt};
 use config::command_config::CommandConfig;
 use darling::{FromDeriveInput, FromField, FromVariant};
-use error::Error;
+use crate::error::{Error, self};
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{DeriveInput, Fields};
 
 mod codegen;
 mod config;
-mod error;
 
 #[derive(FromField)]
 #[darling(attributes(argument))]

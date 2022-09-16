@@ -1,4 +1,5 @@
 /// The fragment of user command
+#[derive(Debug, PartialEq)]
 pub enum CommandFragment {
     /// Select subcommand
     Select(String),
@@ -8,6 +9,7 @@ pub enum CommandFragment {
 }
 
 /// Command argument
+#[derive(Debug, PartialEq)]
 pub enum CommandArgument {
     /// Named argument
     Named(String, CommandArgumentValue),
@@ -17,7 +19,7 @@ pub enum CommandArgument {
 }
 
 /// The actual argument value
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum CommandArgumentValue {
     /// The string type.
     String(String),

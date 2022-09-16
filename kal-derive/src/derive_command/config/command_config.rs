@@ -1,7 +1,7 @@
 use darling::{FromDeriveInput, FromVariant};
 use quote::ToTokens;
 
-use crate::derive_command::error::Error;
+use crate::error::Error;
 
 #[derive(FromDeriveInput, FromVariant)]
 #[darling(attributes(command))]
