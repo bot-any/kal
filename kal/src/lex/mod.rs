@@ -1,3 +1,5 @@
+#![cfg(feature = "lex")]
+pub use kal_derive::TransformHintProvider;
 pub use lexer::{CommandLexError, CommandLexer};
 pub use token::{CommandToken, RawStringPattern};
 pub use transform_hint::{

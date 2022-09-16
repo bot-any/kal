@@ -1,5 +1,4 @@
 //! Generate command framgents from String command.
-#![cfg(feature = "lex")]
 
 use std::{fmt, iter::Peekable, str::CharIndices};
 

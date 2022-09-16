@@ -32,7 +32,7 @@ pub fn remove_leading<'a, 'b: 'a>(
     leading: &'a str,
     s: &'b str,
 ) -> Result<&'b str, TokenTransformError<'b>> {
-    if s.len() > leading.len() + 1 && s.starts_with(leading) {
+    if s.len() > leading.len() && s.starts_with(leading) {
         Ok(&s[leading.len()..])
     } else {
         Err(TokenTransformError::InvalidCommandLabel)
@@ -43,7 +43,7 @@ pub fn remove_trailing<'a, 'b: 'a>(
     trailing: &'a str,
     s: &'b str,
 ) -> Result<&'b str, TokenTransformError<'b>> {
-    if s.len() >= trailing.len() + 1 && s.ends_with(trailing) {
+    if s.len() > trailing.len() && s.ends_with(trailing) {
         Ok(&s[..s.len() - trailing.len()])
     } else {
         Err(TokenTransformError::InvalidCommandLabel)
@@ -59,7 +59,7 @@ where
         tokens: impl Iterator<Item = Result<CommandToken<'a>, CommandLexError<'a>>> + 'a,
     ) -> impl Iterator<Item = Result<CommandFragment, TokenTransformError<'a>>> + 'a {
         TokenTransformerHandle {
-            transformer: &self,
+            transformer: self,
             state: TokenTransformerHandleState::Label,
             tokens,
             hint: Some(self.hint.clone()),
@@ -186,7 +186,7 @@ where
                             }
                             CommandToken::Named(name, next_token) => {
                                 greedy.push_str(name);
-                                greedy.push_str("=");
+                                greedy.push('=');
                                 token = *next_token;
                                 continue;
                             }

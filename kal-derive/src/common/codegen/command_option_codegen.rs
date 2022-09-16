@@ -7,6 +7,7 @@ pub struct CommandOption {
     pub position: usize,
     pub description: String,
     pub ty: Type,
+    pub take_rest: bool,
 }
 
 impl CommandOption {
@@ -16,6 +17,7 @@ impl CommandOption {
             let mut #ident: ::std::option::Option<#ty> = <#ty as ::kal::CommandOptionValueTy>::default();
         }
     }
+
     pub fn kal_option(&self) -> quote::__private::TokenStream {
         let Self {
             name,
@@ -33,6 +35,7 @@ impl CommandOption {
             }
         }
     }
+
     pub fn match_arms<T: ToTokens>(
         &self,
         value: T,
@@ -49,12 +52,24 @@ impl CommandOption {
             quote! { #position => #assignment },
         )
     }
+
+    pub fn transform_hint_part(&self) -> quote::__private::TokenStream {
+        let Self { ty, take_rest, .. } = self;
+        let make_greedy = if *take_rest {
+            quote! { .make_greedy() }
+        } else {
+            quote! {}
+        };
+        quote! { ::kal::lex::TransformHintPart::from(<#ty as ::kal::CommandOptionValueTy>::spec_kind()) #make_greedy }
+    }
 }
 
 pub trait CommandOptionsExt {
     fn build_struct<T: ToTokens>(&self, name: T) -> quote::__private::TokenStream;
 
     fn make_execute_work<T: ToTokens>(&self, name: T) -> quote::__private::TokenStream;
+
+    fn make_transform_hint_vec(&self) -> quote::__private::TokenStream;
 }
 
 impl CommandOptionsExt for Vec<CommandOption> {
@@ -108,6 +123,14 @@ impl CommandOptionsExt for Vec<CommandOption> {
 
                 #options_build_struct
             }
+        }
+    }
+
+    fn make_transform_hint_vec(&self) -> quote::__private::TokenStream {
+        let parts: Vec<_> = self.iter().map(|opt| opt.transform_hint_part()).collect();
+
+        quote! {
+            vec![#(#parts),*]
         }
     }
 }

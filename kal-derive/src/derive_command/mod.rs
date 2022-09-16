@@ -4,23 +4,15 @@
 
 #![deny(missing_docs)]
 
-use codegen::command_option_codegen::{CommandOption, CommandOptionsExt};
-use config::command_config::CommandConfig;
+use crate::common::{
+    codegen::command_option_codegen::{CommandOption, CommandOptionsExt},
+    config::{argument_config::ArgumentConfig, command_config::CommandConfig},
+    error::{self, Error},
+};
 use darling::{FromDeriveInput, FromField, FromVariant};
-use crate::error::{Error, self};
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{DeriveInput, Fields};
-
-mod codegen;
-mod config;
-
-#[derive(FromField)]
-#[darling(attributes(argument))]
-struct ArgumentConfig {
-    name: String,
-    description: String,
-}
 
 pub fn actual_derive_command(derive_input: DeriveInput) -> error::Result<TokenStream> {
     let root_command_config = CommandConfig::from_derive_input(&derive_input)?;
@@ -55,6 +47,7 @@ pub fn actual_derive_command(derive_input: DeriveInput) -> error::Result<TokenSt
                     position: options.len(),
                     description: argument_config.description,
                     ty: field.ty,
+                    take_rest: argument_config.take_rest,
                 });
             }
         }
@@ -76,6 +69,7 @@ pub fn actual_derive_command(derive_input: DeriveInput) -> error::Result<TokenSt
                                 position: inner_options.len(),
                                 description: argument_config.description,
                                 ty: field.ty,
+                                take_rest: argument_config.take_rest,
                             });
                         }
 
@@ -96,7 +90,7 @@ pub fn actual_derive_command(derive_input: DeriveInput) -> error::Result<TokenSt
                                 ::kal::CommandSpec {
                                     name: #command_name,
                                     description: #command_description,
-                                    options: vec![#(#inner_options_kal),*],
+                                    options: ::std::vec![#(#inner_options_kal),*],
                                     subcommands: ::std::vec::Vec::new(),
                                 }
                             });
