@@ -7,27 +7,6 @@ use super::{
     TransformHint, TransformHintPart,
 };
 
-pub struct TokenTransformer<F>
-where
-    F: Fn(&str) -> Result<&str, TokenTransformError>,
-{
-    pub label_stripper: F,
-    pub hint: TransformHint,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum TokenTransformError<'a> {
-    InvalidCommandLabel,
-    InvalidCommandArgument,
-    LexError(CommandLexError<'a>),
-}
-
-impl<'a> From<CommandLexError<'a>> for TokenTransformError<'a> {
-    fn from(e: CommandLexError<'a>) -> Self {
-        TokenTransformError::LexError(e)
-    }
-}
-
 pub fn remove_leading<'a, 'b: 'a>(
     leading: &'a str,
     s: &'b str,
@@ -50,6 +29,48 @@ pub fn remove_trailing<'a, 'b: 'a>(
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub enum TokenTransformError<'a> {
+    InvalidCommandLabel,
+    InvalidCommandArgument,
+    LexError(CommandLexError<'a>),
+}
+
+impl<'a> From<CommandLexError<'a>> for TokenTransformError<'a> {
+    fn from(e: CommandLexError<'a>) -> Self {
+        TokenTransformError::LexError(e)
+    }
+}
+
+pub struct TokenTransformer<F>
+where
+    F: Fn(&str) -> Result<&str, TokenTransformError>,
+{
+    pub label_stripper: Option<F>,
+    pub hint: TransformHint,
+}
+
+impl TokenTransformer<fn(&str) -> Result<&str, TokenTransformError>> {
+    pub fn command_args(hint: TransformHint) -> Self {
+        TokenTransformer {
+            label_stripper: None,
+            hint,
+        }
+    }
+}
+
+impl<F> TokenTransformer<F>
+where
+    F: Fn(&str) -> Result<&str, TokenTransformError>,
+{
+    pub fn command_group(label_stripper: F, hint: TransformHint) -> Self {
+        TokenTransformer {
+            label_stripper: Some(label_stripper),
+            hint,
+        }
+    }
+}
+
 impl<F> TokenTransformer<F>
 where
     F: Fn(&str) -> Result<&str, TokenTransformError>,
@@ -60,7 +81,11 @@ where
     ) -> impl Iterator<Item = Result<CommandFragment, TokenTransformError<'a>>> + 'a {
         TokenTransformerHandle {
             transformer: self,
-            state: TokenTransformerHandleState::Label,
+            state: if self.label_stripper.is_some() {
+                TokenTransformerHandleState::Label
+            } else {
+                TokenTransformerHandleState::Subcommand
+            },
             tokens,
             hint: Some(self.hint.clone()),
         }
@@ -94,7 +119,12 @@ where
             match self.tokens.next() {
                 Some(Ok(CommandToken::Whitespace(_))) => continue,
                 Some(Ok(CommandToken::RawString(label, _))) => {
-                    let transformed = (self.transformer.label_stripper)(label);
+                    let transformed = self
+                        .transformer
+                        .label_stripper
+                        .as_ref()
+                        .map(|f| f(label))
+                        .unwrap_or(Ok(label));
                     break match transformed {
                         Ok(transformed) => {
                             self.hint = self.hint.as_ref().and_then(|hint| match hint {

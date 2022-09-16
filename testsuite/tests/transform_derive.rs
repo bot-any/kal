@@ -1,5 +1,5 @@
 use kal::{
-    lex::{remove_leading, remove_trailing, CommandLexer, TokenTransformer, TransformHintProvider},
+    lex::{CommandLexer, TokenTransformer, TransformHintProvider},
     Command,
 };
 
@@ -14,21 +14,17 @@ fn transform() {
             test: Option<String>,
         },
     }
-    let transformer = TokenTransformer {
-        label_stripper: |s| {
-            remove_leading("/", s).map(|s| remove_trailing("@my_bot", s).unwrap_or(s))
-        },
-        hint: Hello::hint(),
-    };
+    let transformer = TokenTransformer::command_args(Hello::hint());
 
-    let lexer = CommandLexer::new("/hello world");
+    let lexer = CommandLexer::new("world");
     let fragments: Result<Vec<_>, _> = transformer.transform(lexer).collect();
-    let parsed = fragments.map(|fragments| Hello::parse(&fragments[1..]));
+    dbg!(&fragments);
+    let parsed = fragments.map(|fragments| Hello::parse(&fragments));
     assert_eq!(Ok(Some(Hello::World { test: None })), parsed);
 
-    let lexer = CommandLexer::new("/hello world it is great");
+    let lexer = CommandLexer::new("world it is great");
     let fragments: Result<Vec<_>, _> = transformer.transform(lexer).collect();
-    let parsed = fragments.map(|fragments| Hello::parse(&fragments[1..]));
+    let parsed = fragments.map(|fragments| Hello::parse(&fragments));
     assert_eq!(
         Ok(Some(Hello::World {
             test: Some("it is great".to_string())

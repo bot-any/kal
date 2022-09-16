@@ -10,9 +10,6 @@ use crate::common::{
 };
 
 pub fn actual_derive_transform_hint(derive_input: DeriveInput) -> error::Result<TokenStream> {
-    let root_command_config = CommandConfig::from_derive_input(&derive_input)?;
-    let root_command_name = root_command_config.name_or_error_from(&derive_input.ident)?;
-
     let name = derive_input.ident;
 
     let mut options = Vec::new();
@@ -154,11 +151,7 @@ pub fn actual_derive_transform_hint(derive_input: DeriveInput) -> error::Result<
     Ok(quote! {
         impl ::kal::lex::TransformHintProvider for #name {
             fn hint() -> ::kal::lex::TransformHint {
-                ::kal::lex::TransformHint::Select(
-                    ::std::collections::HashMap::from_iter(
-                        vec![(#root_command_name, #hint_variant)]
-                    )
-                )
+                #hint_variant
             }
         }
     }

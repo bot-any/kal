@@ -10,11 +10,9 @@ use kal::{
 
 #[test]
 fn transform() {
-    let transformer = TokenTransformer {
-        label_stripper: |s| {
-            remove_leading("/", s).map(|s| remove_trailing("@my_bot", s).unwrap_or(s))
-        },
-        hint: TransformHint::Select({
+    let transformer = TokenTransformer::command_group(
+        |s| remove_leading("/", s).map(|s| remove_trailing("@my_bot", s).unwrap_or(s)),
+        TransformHint::Select({
             let mut map = HashMap::new();
 
             map.insert(
@@ -36,7 +34,7 @@ fn transform() {
 
             map
         }),
-    };
+    );
 
     let lexer = CommandLexer::new("/hello world");
 
@@ -54,9 +52,9 @@ fn transform() {
 
 #[test]
 fn transform_argument() {
-    let transformer = TokenTransformer {
-        label_stripper: |s| Ok(s),
-        hint: TransformHint::Select({
+    let transformer = TokenTransformer::command_group(
+        |s| Ok(s),
+        TransformHint::Select({
             let mut map = HashMap::new();
 
             map.insert(
@@ -93,7 +91,7 @@ fn transform_argument() {
 
             map
         }),
-    };
+    );
 
     let lexer = CommandLexer::new("int 1");
     let fragments: Result<Vec<_>, _> = transformer.transform(lexer).collect();
