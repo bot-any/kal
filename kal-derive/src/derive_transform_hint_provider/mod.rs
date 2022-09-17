@@ -129,7 +129,7 @@ pub fn actual_derive_transform_hint(derive_input: DeriveInput) -> error::Result<
         Some(quote! {
             {
                 ::std::collections::HashMap::from_iter(
-                    vec![#((#name, #value)),*]
+                    [#((#name, #value)),*]
                 )
             }
         })

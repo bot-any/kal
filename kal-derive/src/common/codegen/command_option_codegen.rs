@@ -1,4 +1,4 @@
-use quote::{quote, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 use syn::{Ident, Type};
 
 pub struct CommandOption {
@@ -13,6 +13,7 @@ pub struct CommandOption {
 impl CommandOption {
     pub fn declaration(&self) -> quote::__private::TokenStream {
         let Self { ident, ty, .. } = self;
+        let ident = format_ident!("{}_field", ident);
         quote! {
             let mut #ident: ::std::option::Option<#ty> = <#ty as ::kal::CommandOptionValueTy>::default();
         }
@@ -46,6 +47,7 @@ impl CommandOption {
             position,
             ..
         } = self;
+        let ident = format_ident!("{}_field", ident);
         let assignment = quote! { #ident = #value };
         (
             quote! { #name => #assignment },
@@ -75,9 +77,13 @@ pub trait CommandOptionsExt {
 impl CommandOptionsExt for Vec<CommandOption> {
     fn build_struct<T: ToTokens>(&self, name: T) -> quote::__private::TokenStream {
         let idents: Vec<_> = self.iter().map(|option| &option.ident).collect();
+        let idents_field: Vec<_> = self
+            .iter()
+            .map(|option| format_ident!("{}_field", option.ident))
+            .collect();
 
         quote! {
-            match (#(#idents),*) {
+            match (#(#idents_field),*) {
                 (#(::std::option::Option::Some(#idents)),*) => {
                     ::std::option::Option::Some(#name {
                         #(#idents),*
