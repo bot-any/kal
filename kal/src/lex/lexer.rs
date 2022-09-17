@@ -4,10 +4,14 @@ use std::{fmt, iter::Peekable, str::CharIndices};
 
 use super::{CommandToken, RawStringPattern};
 
+/// An error that can appear while lexing a command.
 #[derive(Debug, PartialEq, Eq)]
 pub enum CommandLexError<'a> {
+    /// There is a unclosed quote.
     UnclosedQuote(usize, &'a str),
+    /// There is a whitespace before/after equal sign.
     NamedProhibitsWhitespace(usize, &'a str),
+    /// There is a nam assignment syntax after equal sign
     NamedCannotContainNamed(usize, &'a str),
 }
 
@@ -39,14 +43,17 @@ impl std::error::Error for CommandLexError<'_> {}
 pub struct CommandLexer<'a> {
     source: &'a str,
     iter: Peekable<CharIndices<'a>>,
+    in_named: bool,
     failed: bool,
 }
 
 impl<'a> CommandLexer<'a> {
+    /// Create a new `CommandLexer` instance from a command string.
     pub fn new(source: &'a str) -> Self {
         CommandLexer {
             source,
             iter: source.char_indices().peekable(),
+            in_named: false,
             failed: false,
         }
     }
@@ -157,6 +164,12 @@ impl<'a> CommandLexer<'a> {
                     match ch {
                         '=' => {
                             let name = &self.source[first..i];
+                            if self.in_named {
+                                return Some(Ok(CommandToken::Named(
+                                    name,
+                                    Box::new(CommandToken::Whitespace("")),
+                                )));
+                            }
                             if name.is_empty() {
                                 return Some(Err(CommandLexError::NamedProhibitsWhitespace(
                                     first,
@@ -164,6 +177,7 @@ impl<'a> CommandLexer<'a> {
                                 )));
                             }
                             self.iter.next();
+                            self.in_named = true;
                             let token = match self.next() {
                                 Some(Ok(CommandToken::Whitespace(_))) | None => {
                                     return Some(Err(CommandLexError::NamedProhibitsWhitespace(
@@ -180,6 +194,7 @@ impl<'a> CommandLexer<'a> {
                                 Some(Ok(expr)) => expr,
                                 otherwise => return otherwise,
                             };
+                            self.in_named = false;
                             return Some(Ok(CommandToken::Named(name, Box::new(token))));
                         }
                         '0'..='9' => {

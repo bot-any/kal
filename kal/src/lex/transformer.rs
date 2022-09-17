@@ -1,10 +1,8 @@
-use std::iter::Peekable;
-
 use crate::{CommandArgument, CommandArgumentValue, CommandFragment};
 
 use super::{
     transform_hint::TransformHintKind, CommandLexError, CommandToken, RawStringPattern,
-    TransformHint, TransformHintPart,
+    TransformHint,
 };
 
 pub fn remove_leading<'a, 'b: 'a>(
@@ -31,9 +29,11 @@ pub fn remove_trailing<'a, 'b: 'a>(
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum TokenTransformError<'a> {
+    LexError(CommandLexError<'a>),
+
     InvalidCommandLabel,
     InvalidCommandArgument,
-    LexError(CommandLexError<'a>),
+    PositionedAfterNamed,
 }
 
 impl<'a> From<CommandLexError<'a>> for TokenTransformError<'a> {
@@ -88,6 +88,7 @@ where
             },
             tokens,
             hint: Some(self.hint.clone()),
+            named_produced: false,
         }
     }
 }
@@ -106,6 +107,7 @@ where
     state: TokenTransformerHandleState,
     tokens: I,
     hint: Option<TransformHint>,
+    named_produced: bool,
 }
 
 impl<'a, I, F> TokenTransformerHandle<'a, I, F>
@@ -234,35 +236,57 @@ where
             } else {
                 match current {
                     Some(Ok(token)) => {
-                        let arg = match token {
-                            CommandToken::Whitespace(_) => None,
-                            CommandToken::RawString(value, pat) => {
-                                let value = match (hint_kind, pat) {
-                                    (
-                                        Some(TransformHintKind::Float),
-                                        RawStringPattern::Float | RawStringPattern::Integer,
-                                    ) => CommandArgumentValue::F64(value.parse().unwrap()),
-                                    (
-                                        Some(TransformHintKind::Integer),
-                                        RawStringPattern::Integer,
-                                    ) => CommandArgumentValue::I64(value.parse().unwrap()),
-                                    _ => CommandArgumentValue::String(value.to_string()),
-                                };
-                                Some(CommandArgument::Positioned(pos, value))
+                        fn into_command_argument_value(
+                            hint_kind: Option<&TransformHintKind>,
+                            token: CommandToken,
+                        ) -> Option<(Option<String>, CommandArgumentValue)>
+                        {
+                            match token {
+                                CommandToken::Whitespace(_) => (None),
+                                CommandToken::RawString(value, pat) => {
+                                    let value = match (hint_kind, pat) {
+                                        (
+                                            Some(TransformHintKind::Float),
+                                            RawStringPattern::Float | RawStringPattern::Integer,
+                                        ) => CommandArgumentValue::F64(value.parse().unwrap()),
+                                        (
+                                            Some(TransformHintKind::Integer),
+                                            RawStringPattern::Integer,
+                                        ) => CommandArgumentValue::I64(value.parse().unwrap()),
+                                        _ => CommandArgumentValue::String(value.to_string()),
+                                    };
+                                    Some((None, value))
+                                }
+                                CommandToken::QuotedString(_, value, _) => {
+                                    Some((None, CommandArgumentValue::String(value)))
+                                }
+                                CommandToken::Named(name, value) => Some((
+                                    Some(name.to_string()),
+                                    into_command_argument_value(hint_kind, *value).unwrap().1,
+                                )),
                             }
-                            CommandToken::QuotedString(open, value, close) => {
-                                Some(CommandArgument::Positioned(
-                                    pos,
-                                    CommandArgumentValue::String(value),
-                                ))
-                            }
-                            CommandToken::Named(name, value) => {
-                                Some(CommandArgument::Named(name.to_string(), todo!()))
-                            }
-                        };
-                        if let Some(arg) = arg {
+                        }
+
+                        let value = into_command_argument_value(hint_kind, token);
+
+                        if let Some((name, value)) = value {
+                            let is_named = name.is_some();
+
+                            let arg = if let Some(name) = name {
+                                CommandArgument::Named(name, value)
+                            } else {
+                                CommandArgument::Positioned(pos, value)
+                            };
+
                             args.push(arg);
-                            pos += 1;
+                            if is_named {
+                                self.named_produced = true;
+                            } else {
+                                if self.named_produced {
+                                    return Some(Err(TokenTransformError::PositionedAfterNamed));
+                                }
+                                pos += 1;
+                            }
                             hint = hint_seq.next();
                         }
                     }

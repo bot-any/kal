@@ -24,9 +24,7 @@ fn transform() {
     );
 
     let lexer = CommandLexer::new("/hello world");
-
     let fragments: Result<Vec<_>, _> = transformer.transform(lexer).collect();
-
     assert_eq!(
         Ok(vec![
             CommandFragment::Select("hello".to_string()),
@@ -75,55 +73,70 @@ fn transform_argument() {
         }),
     );
 
-    let lexer = CommandLexer::new("int 1");
-    let fragments: Result<Vec<_>, _> = transformer.transform(lexer).collect();
-    assert_eq!(
-        Ok(vec![
-            CommandFragment::Select("int".to_string()),
-            CommandFragment::Execute(vec![CommandArgument::Positioned(
-                0,
-                CommandArgumentValue::I64(1)
-            )]),
-        ]),
-        fragments
-    );
-
-    let lexer = CommandLexer::new("float 1.3");
-    let fragments: Result<Vec<_>, _> = transformer.transform(lexer).collect();
-    assert_eq!(
-        Ok(vec![
-            CommandFragment::Select("float".to_string()),
-            CommandFragment::Execute(vec![CommandArgument::Positioned(
-                0,
-                CommandArgumentValue::F64(1.3)
-            )]),
-        ]),
-        fragments
-    );
-
-    let lexer = CommandLexer::new("string aaa");
-    let fragments: Result<Vec<_>, _> = transformer.transform(lexer).collect();
-    assert_eq!(
-        Ok(vec![
-            CommandFragment::Select("string".to_string()),
-            CommandFragment::Execute(vec![CommandArgument::Positioned(
-                0,
-                CommandArgumentValue::String("aaa".to_string())
-            )]),
-        ]),
-        fragments
-    );
-
-    let lexer = CommandLexer::new("greedy aa 1 a= cq \" wa");
-    let fragments: Result<Vec<_>, _> = transformer.transform(lexer).collect();
-    assert_eq!(
-        Ok(vec![
-            CommandFragment::Select("greedy".to_string()),
-            CommandFragment::Execute(vec![CommandArgument::Positioned(
-                0,
-                CommandArgumentValue::String("aa 1 a= cq \" wa".to_string())
-            )]),
-        ]),
-        fragments
-    );
+    for (command, result) in [
+        (
+            "int 1",
+            Ok(vec![
+                CommandFragment::Select("int".to_string()),
+                CommandFragment::Execute(vec![CommandArgument::Positioned(
+                    0,
+                    CommandArgumentValue::I64(1),
+                )]),
+            ]),
+        ),
+        (
+            "int i=1",
+            Ok(vec![
+                CommandFragment::Select("int".to_string()),
+                CommandFragment::Execute(vec![CommandArgument::Named(
+                    "i".to_string(),
+                    CommandArgumentValue::I64(1),
+                )]),
+            ]),
+        ),
+        (
+            "float 1.3",
+            Ok(vec![
+                CommandFragment::Select("float".to_string()),
+                CommandFragment::Execute(vec![CommandArgument::Positioned(
+                    0,
+                    CommandArgumentValue::F64(1.3),
+                )]),
+            ]),
+        ),
+        (
+            "float f=1.3",
+            Ok(vec![
+                CommandFragment::Select("float".to_string()),
+                CommandFragment::Execute(vec![CommandArgument::Named(
+                    "f".to_string(),
+                    CommandArgumentValue::F64(1.3),
+                )]),
+            ]),
+        ),
+        (
+            "string aaa",
+            Ok(vec![
+                CommandFragment::Select("string".to_string()),
+                CommandFragment::Execute(vec![CommandArgument::Positioned(
+                    0,
+                    CommandArgumentValue::String("aaa".to_string()),
+                )]),
+            ]),
+        ),
+        (
+            "greedy aa 1 a= cq \" wa",
+            Ok(vec![
+                CommandFragment::Select("greedy".to_string()),
+                CommandFragment::Execute(vec![CommandArgument::Positioned(
+                    0,
+                    CommandArgumentValue::String("aa 1 a= cq \" wa".to_string()),
+                )]),
+            ]),
+        ),
+    ] {
+        let lexer = CommandLexer::new(command);
+        let fragments: Result<Vec<_>, _> = transformer.transform(lexer).collect();
+        assert_eq!(result, fragments);
+    }
 }

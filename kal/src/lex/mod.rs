@@ -67,6 +67,35 @@
 //! );
 //! ```
 //!
+//! ### Label Strip
+//!
+//! Sometimes you need to strip the label for match command name correctly.
+//! For example, you'll never need the leading `/` from `/hello` command.
+//! You can easily strip leading/trailing string constants.
+//! It is very useful when you're working with [`command_group!`](`crate::command_group!`).
+//!
+//! ```rust
+//! # use kal::lex::{CommandLexer, TokenTransformer, TransformHint, remove_leading};
+//! # use kal::CommandFragment;
+//! # use std::collections::HashMap;
+//! # let hint = TransformHint::Select(
+//! #     HashMap::from_iter([("hello", TransformHint::Select(
+//! #         HashMap::from_iter([("world", TransformHint::Execute(vec![]))])
+//! #     ))])
+//! # );
+//! let transformer = TokenTransformer::command_group(|s| remove_leading("/", s), hint);
+//! let lexer = CommandLexer::new("/hello world");
+//! let result: Result<Vec<_>, _> = transformer.transform(lexer).collect();
+//! assert_eq!(
+//!     result,
+//!     Ok(vec![
+//!         CommandFragment::Select("hello".to_string()),
+//!         CommandFragment::Select("world".to_string()),
+//!         CommandFragment::Execute(vec![]),
+//!     ])
+//! );
+//! ```
+//!
 //! ### #[derive(TransformHintProvider)]
 //!
 //! As you can see above, the [`TokenTransformer`] needs [`TransformHint`] to work properly.
