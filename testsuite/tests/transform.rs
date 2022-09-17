@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, iter::FromIterator};
 
 use kal::{
     lex::{
@@ -13,26 +13,13 @@ fn transform() {
     let transformer = TokenTransformer::command_group(
         |s| remove_leading("/", s).map(|s| remove_trailing("@my_bot", s).unwrap_or(s)),
         TransformHint::Select({
-            let mut map = HashMap::new();
-
-            map.insert(
+            HashMap::from_iter([(
                 "hello",
-                TransformHint::Select({
-                    let mut map = HashMap::new();
-
-                    map.insert(
-                        "world",
-                        TransformHint::Execute(vec![TransformHintPart {
-                            required: false,
-                            kind: TransformHintKind::StringGreedy,
-                        }]),
-                    );
-
-                    map
-                }),
-            );
-
-            map
+                TransformHint::Select(HashMap::from_iter([(
+                    "world",
+                    TransformHint::Execute(vec![]),
+                )])),
+            )])
         }),
     );
 
@@ -55,41 +42,36 @@ fn transform_argument() {
     let transformer = TokenTransformer::command_group(
         |s| Ok(s),
         TransformHint::Select({
-            let mut map = HashMap::new();
-
-            map.insert(
-                "int",
-                TransformHint::Execute(vec![TransformHintPart {
-                    required: true,
-                    kind: TransformHintKind::Integer,
-                }]),
-            );
-
-            map.insert(
-                "float",
-                TransformHint::Execute(vec![TransformHintPart {
-                    required: true,
-                    kind: TransformHintKind::Float,
-                }]),
-            );
-
-            map.insert(
-                "string",
-                TransformHint::Execute(vec![TransformHintPart {
-                    required: true,
-                    kind: TransformHintKind::String,
-                }]),
-            );
-
-            map.insert(
-                "greedy",
-                TransformHint::Execute(vec![TransformHintPart {
-                    required: true,
-                    kind: TransformHintKind::StringGreedy,
-                }]),
-            );
-
-            map
+            HashMap::from_iter([
+                (
+                    "int",
+                    TransformHint::Execute(vec![TransformHintPart {
+                        multiple: false,
+                        kind: TransformHintKind::Integer,
+                    }]),
+                ),
+                (
+                    "float",
+                    TransformHint::Execute(vec![TransformHintPart {
+                        multiple: false,
+                        kind: TransformHintKind::Float,
+                    }]),
+                ),
+                (
+                    "string",
+                    TransformHint::Execute(vec![TransformHintPart {
+                        multiple: false,
+                        kind: TransformHintKind::String,
+                    }]),
+                ),
+                (
+                    "greedy",
+                    TransformHint::Execute(vec![TransformHintPart {
+                        multiple: false,
+                        kind: TransformHintKind::StringGreedy,
+                    }]),
+                ),
+            ])
         }),
     );
 

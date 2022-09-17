@@ -8,6 +8,6 @@ pub trait Command: Sized {
     /// The spec of command for command registration.
     fn spec() -> CommandSpec;
 
-    /// Try parse command from [`CommandFramgnet`] sequence.
+    /// Try parse command from [`CommandFragment`] sequence.
     fn parse(fragments: &[CommandFragment]) -> Option<Self>;
 }

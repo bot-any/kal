@@ -192,7 +192,8 @@ where
 
         let mut hint = hint_seq.next();
         loop {
-            let required = hint.map(|hint| hint.required).unwrap_or(false);
+            // TODO: handle multiple elements
+            let multiple = hint.map(|hint| hint.multiple).unwrap_or(false);
             let hint_kind = hint.map(|hint| &hint.kind);
             let is_greedy = hint
                 .map(|hint| matches!(hint.kind, TransformHintKind::StringGreedy))

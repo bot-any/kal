@@ -13,7 +13,10 @@ kal-derive = { path = "../kal-derive", version = "0.2", optional = true }
 
 [features]
 default = ["derive"]
-full = ["derive", "lex"]
 
 derive = ["dep:kal-derive"]
 lex = ["kal-derive?/lex"]
+
+[package.metadata.docs.rs]
+# document all features
+all-features = true

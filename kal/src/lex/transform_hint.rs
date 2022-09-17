@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::CommandOptionValueKind;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TransformHintKind {
     Integer,
     Float,
@@ -19,16 +19,16 @@ impl TransformHintKind {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TransformHintPart {
-    pub required: bool,
+    pub multiple: bool,
     pub kind: TransformHintKind,
 }
 
 impl TransformHintPart {
     pub fn make_greedy(self) -> Self {
         Self {
-            required: self.required,
+            multiple: self.multiple,
             kind: self.kind.make_greedy(),
         }
     }
@@ -37,27 +37,24 @@ impl TransformHintPart {
 impl From<CommandOptionValueKind> for TransformHintPart {
     fn from(kind: CommandOptionValueKind) -> Self {
         match kind {
-            CommandOptionValueKind::Optional(v) => TransformHintPart {
-                required: false,
-                ..TransformHintPart::from(*v)
-            },
+            CommandOptionValueKind::Optional(v) => TransformHintPart::from(*v),
             CommandOptionValueKind::String => TransformHintPart {
-                required: true,
+                multiple: false,
                 kind: TransformHintKind::String,
             },
             CommandOptionValueKind::Integer => TransformHintPart {
-                required: true,
+                multiple: false,
                 kind: TransformHintKind::Integer,
             },
             CommandOptionValueKind::Double => TransformHintPart {
-                required: true,
+                multiple: false,
                 kind: TransformHintKind::Float,
             },
         }
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TransformHint {
     Execute(Vec<TransformHintPart>),
     Select(HashMap<&'static str, TransformHint>),
