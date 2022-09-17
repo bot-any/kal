@@ -3,7 +3,7 @@ use std::{collections::HashMap, iter::FromIterator};
 use kal::{
     lex::{
         remove_leading, remove_trailing, CommandLexer, TokenTransformer, TransformHint,
-        TransformHintKind, TransformHintPart,
+        TransformHintPart, TransformHintPartKind,
     },
     CommandArgument, CommandArgumentValue, CommandFragment,
 };
@@ -45,28 +45,28 @@ fn transform_argument() {
                     "int",
                     TransformHint::Execute(vec![TransformHintPart {
                         multiple: false,
-                        kind: TransformHintKind::Integer,
+                        kind: TransformHintPartKind::Integer,
                     }]),
                 ),
                 (
                     "float",
                     TransformHint::Execute(vec![TransformHintPart {
                         multiple: false,
-                        kind: TransformHintKind::Float,
+                        kind: TransformHintPartKind::Float,
                     }]),
                 ),
                 (
                     "string",
                     TransformHint::Execute(vec![TransformHintPart {
                         multiple: false,
-                        kind: TransformHintKind::String,
+                        kind: TransformHintPartKind::String,
                     }]),
                 ),
                 (
                     "greedy",
                     TransformHint::Execute(vec![TransformHintPart {
                         multiple: false,
-                        kind: TransformHintKind::StringGreedy,
+                        kind: TransformHintPartKind::StringGreedy,
                     }]),
                 ),
             ])

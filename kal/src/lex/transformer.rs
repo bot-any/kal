@@ -1,6 +1,8 @@
 use crate::{CommandArgument, CommandArgumentValue, CommandFragment};
 
-use super::{CommandLexError, CommandToken, RawStringPattern, TransformHint, TransformHintKind};
+use super::{
+    CommandLexError, CommandToken, RawStringPattern, TransformHint, TransformHintPartKind,
+};
 
 /// An error that can appear while transform the token produced into a command fragment.
 #[derive(Debug, PartialEq, Eq)]
@@ -43,7 +45,7 @@ impl<F> TokenTransformer<F>
 where
     F: Fn(&str) -> Result<&str, TokenTransformError>,
 {
-    /// Make a new [`TokenTransformer`] with a label stripper and the hint from [`command_group!`].
+    /// Make a new [`TokenTransformer`] with a label stripper and the hint from [`command_group!`](`super::super::command_group!`).
     pub fn command_group(label_stripper: F, hint: TransformHint) -> Self {
         TokenTransformer {
             label_stripper: Some(label_stripper),
@@ -175,7 +177,7 @@ where
             let multiple = hint.map(|hint| hint.multiple).unwrap_or(false);
             let hint_kind = hint.map(|hint| &hint.kind);
             let is_greedy = hint
-                .map(|hint| matches!(hint.kind, TransformHintKind::StringGreedy))
+                .map(|hint| matches!(hint.kind, TransformHintPartKind::StringGreedy))
                 .unwrap_or(false);
 
             if is_greedy {
@@ -214,7 +216,7 @@ where
                 match current {
                     Some(Ok(token)) => {
                         fn into_command_argument_value(
-                            hint_kind: Option<&TransformHintKind>,
+                            hint_kind: Option<&TransformHintPartKind>,
                             token: CommandToken,
                         ) -> Option<(Option<String>, CommandArgumentValue)>
                         {
@@ -223,11 +225,11 @@ where
                                 CommandToken::RawString(value, pat) => {
                                     let value = match (hint_kind, pat) {
                                         (
-                                            Some(TransformHintKind::Float),
+                                            Some(TransformHintPartKind::Float),
                                             RawStringPattern::Float | RawStringPattern::Integer,
                                         ) => CommandArgumentValue::F64(value.parse().unwrap()),
                                         (
-                                            Some(TransformHintKind::Integer),
+                                            Some(TransformHintPartKind::Integer),
                                             RawStringPattern::Integer,
                                         ) => CommandArgumentValue::I64(value.parse().unwrap()),
                                         _ => CommandArgumentValue::String(value.to_string()),

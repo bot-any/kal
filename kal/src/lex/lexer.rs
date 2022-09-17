@@ -9,8 +9,10 @@ use super::{CommandToken, RawStringPattern};
 pub enum CommandLexError<'a> {
     /// There is a unclosed quote.
     UnclosedQuote(usize, &'a str),
+
     /// There is a whitespace before/after equal sign.
     NamedProhibitsWhitespace(usize, &'a str),
+
     /// There is a nam assignment syntax after equal sign
     NamedCannotContainNamed(usize, &'a str),
 }
@@ -40,9 +42,12 @@ impl fmt::Display for CommandLexError<'_> {
 }
 
 impl std::error::Error for CommandLexError<'_> {}
+
+/// A lexer transforming command string into sequence of [`CommandToken`]/
 pub struct CommandLexer<'a> {
     source: &'a str,
     iter: Peekable<CharIndices<'a>>,
+
     in_named: bool,
     failed: bool,
 }
@@ -205,6 +210,13 @@ impl<'a> CommandLexer<'a> {
                                 is_numeric = false;
                             } else {
                                 met_float_dot = true;
+                            }
+                            self.iter.next();
+                        }
+                        '-' | '+' => {
+                            if first != i {
+                                is_numeric = false;
+                                met_float_dot = false;
                             }
                             self.iter.next();
                         }

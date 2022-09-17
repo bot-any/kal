@@ -150,7 +150,7 @@ pub use label_strip_util::{remove_leading, remove_trailing};
 pub use lexer::{CommandLexError, CommandLexer};
 pub use token::{CommandToken, RawStringPattern};
 pub use transform_hint::{
-    TransformHint, TransformHintKind, TransformHintPart, TransformHintProvider,
+    TransformHint, TransformHintPart, TransformHintPartKind, TransformHintProvider,
 };
 pub use transformer::{TokenTransformError, TokenTransformer};
 

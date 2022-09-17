@@ -12,10 +12,12 @@ fn lex() {
             ]),
         ),
         (
-            "/hello    1   2.3\t3a\r4.5b",
+            "/hello    -1 1   2.3\t3a\r4.5b",
             Ok(vec![
                 CommandToken::RawString("/hello", RawStringPattern::Unrecognized),
                 CommandToken::Whitespace("    "),
+                CommandToken::RawString("-1", RawStringPattern::Integer),
+                CommandToken::Whitespace(" "),
                 CommandToken::RawString("1", RawStringPattern::Integer),
                 CommandToken::Whitespace("   "),
                 CommandToken::RawString("2.3", RawStringPattern::Float),
