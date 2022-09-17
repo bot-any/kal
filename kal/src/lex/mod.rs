@@ -146,13 +146,15 @@
 //! ```
 #![cfg(feature = "lex")]
 pub use kal_derive::TransformHintProvider;
+pub use label_strip_util::{remove_leading, remove_trailing};
 pub use lexer::{CommandLexError, CommandLexer};
 pub use token::{CommandToken, RawStringPattern};
 pub use transform_hint::{
     TransformHint, TransformHintKind, TransformHintPart, TransformHintProvider,
 };
-pub use transformer::{remove_leading, remove_trailing, TokenTransformError, TokenTransformer};
+pub use transformer::{TokenTransformError, TokenTransformer};
 
+mod label_strip_util;
 mod lexer;
 mod token;
 mod transform_hint;

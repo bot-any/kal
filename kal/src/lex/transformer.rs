@@ -1,38 +1,16 @@
 use crate::{CommandArgument, CommandArgumentValue, CommandFragment};
 
-use super::{
-    transform_hint::TransformHintKind, CommandLexError, CommandToken, RawStringPattern,
-    TransformHint,
-};
+use super::{CommandLexError, CommandToken, RawStringPattern, TransformHint, TransformHintKind};
 
-pub fn remove_leading<'a, 'b: 'a>(
-    leading: &'a str,
-    s: &'b str,
-) -> Result<&'b str, TokenTransformError<'b>> {
-    if s.len() > leading.len() && s.starts_with(leading) {
-        Ok(&s[leading.len()..])
-    } else {
-        Err(TokenTransformError::InvalidCommandLabel)
-    }
-}
-
-pub fn remove_trailing<'a, 'b: 'a>(
-    trailing: &'a str,
-    s: &'b str,
-) -> Result<&'b str, TokenTransformError<'b>> {
-    if s.len() > trailing.len() && s.ends_with(trailing) {
-        Ok(&s[..s.len() - trailing.len()])
-    } else {
-        Err(TokenTransformError::InvalidCommandLabel)
-    }
-}
-
+/// An error that can appear while transform the token produced into a command fragment.
 #[derive(Debug, PartialEq, Eq)]
 pub enum TokenTransformError<'a> {
+    /// The error happen from lex step.
     LexError(CommandLexError<'a>),
 
+    /// The command label is invalid.
     InvalidCommandLabel,
-    InvalidCommandArgument,
+    /// Positioned argument cannot appear after named argument accepted.
     PositionedAfterNamed,
 }
 
@@ -42,15 +20,17 @@ impl<'a> From<CommandLexError<'a>> for TokenTransformError<'a> {
     }
 }
 
+/// This struct provide a way to transform [`CommandToken`] into [`CommandFragment`] with hint provided
 pub struct TokenTransformer<F>
 where
     F: Fn(&str) -> Result<&str, TokenTransformError>,
 {
-    pub label_stripper: Option<F>,
-    pub hint: TransformHint,
+    label_stripper: Option<F>,
+    hint: TransformHint,
 }
 
 impl TokenTransformer<fn(&str) -> Result<&str, TokenTransformError>> {
+    /// Make a new [`TokenTransformer`] with the hint from a command directly deriving [`TransformHintProvider`](`super::transform_hint::TransformHintProvider`).
     pub fn command_args(hint: TransformHint) -> Self {
         TokenTransformer {
             label_stripper: None,
@@ -63,18 +43,15 @@ impl<F> TokenTransformer<F>
 where
     F: Fn(&str) -> Result<&str, TokenTransformError>,
 {
+    /// Make a new [`TokenTransformer`] with a label stripper and the hint from [`command_group!`].
     pub fn command_group(label_stripper: F, hint: TransformHint) -> Self {
         TokenTransformer {
             label_stripper: Some(label_stripper),
             hint,
         }
     }
-}
 
-impl<F> TokenTransformer<F>
-where
-    F: Fn(&str) -> Result<&str, TokenTransformError>,
-{
+    /// Transform `Iterator` yielding [`CommandToken`] into an `Iterator` yielding [`CommandFragment`].
     pub fn transform<'a, 'b: 'a>(
         &'b self,
         tokens: impl Iterator<Item = Result<CommandToken<'a>, CommandLexError<'a>>> + 'a,
