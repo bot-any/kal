@@ -1,6 +1,5 @@
 /// An error made while parsing command from [`CommandFragment`](`super::CommandFragment`).
 #[derive(Debug, PartialEq, Eq)]
-#[non_exhaustive]
 pub enum CommandParseError<'a> {
     /// The command name cannot be matched.
     UnknownCommand(&'a String),
