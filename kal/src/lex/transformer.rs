@@ -1,3 +1,5 @@
+use core::fmt;
+
 use crate::{CommandArgument, CommandArgumentValue, CommandFragment};
 
 use super::{
@@ -15,6 +17,23 @@ pub enum TokenTransformError<'a> {
     /// Positioned argument cannot appear after named argument accepted.
     PositionedAfterNamed,
 }
+
+impl fmt::Display for TokenTransformError<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TokenTransformError::LexError(error) => write!(f, "Lex error: {}", error),
+            TokenTransformError::InvalidCommandLabel => write!(f, "Invalid command label"),
+            TokenTransformError::PositionedAfterNamed => {
+                write!(
+                    f,
+                    "Positioned argument cannot appear after named argument accepted"
+                )
+            }
+        }
+    }
+}
+
+impl std::error::Error for TokenTransformError<'_> {}
 
 impl<'a> From<CommandLexError<'a>> for TokenTransformError<'a> {
     fn from(e: CommandLexError<'a>) -> Self {
