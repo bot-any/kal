@@ -155,12 +155,17 @@ pub fn actual_derive_command(derive_input: DeriveInput) -> error::Result<TokenSt
 
     let options_kal: Vec<_> = options.iter().map(|opt| opt.kal_option()).collect();
 
-    let self_arm = self_discovered.first().map(|self_token| {
+    let self_arm = if let Some(self_token) = self_discovered.first() {
         let work = options.make_execute_work(self_token);
         quote! {
-            [::kal::CommandFragment::Execute(arguments)] => #work
+            [::kal::CommandFragment::Execute(arguments), ..] => #work
         }
-    });
+    } else {
+        quote! {
+            [::kal::CommandFragment::Execute(arguments), ..] =>
+                ::std::result::Result::Err(::kal::CommandParseError::ExecuteTooEarly)
+        }
+    };
 
     Ok(quote! {
         impl ::kal::Command for #name {
@@ -174,7 +179,7 @@ pub fn actual_derive_command(derive_input: DeriveInput) -> error::Result<TokenSt
                     subcommands: ::std::vec![#(#subcommands),*],
                 }
             }
-            fn parse(fragments: &[::kal::CommandFragment]) -> ::std::option::Option<Self> {
+            fn parse(fragments: &[::kal::CommandFragment]) -> ::std::result::Result<Self, ::kal::CommandParseError> {
                 match fragments {
                     [
                         ::kal::CommandFragment::Select(name),
@@ -185,17 +190,17 @@ pub fn actual_derive_command(derive_input: DeriveInput) -> error::Result<TokenSt
                         match name.as_str() {
                             #(#subcommands_named_fields_match_arms),*
                             #(#subcommand_match_arms),*
-                            _ => ::std::option::Option::None,
+                            _ => ::std::result::Result::Err(::kal::CommandParseError::UnknownCommand(name)),
                         }
                     }
                     [::kal::CommandFragment::Select(name), rest @ ..] => {
                         match name.as_str() {
                             #(#subcommand_match_arms),*
-                            _ => ::std::option::Option::None,
+                            _ => ::std::result::Result::Err(::kal::CommandParseError::UnknownCommand(name)),
                         }
                     }
-                    #self_arm
-                    _ => ::std::option::Option::None,
+                    #self_arm,
+                    [] => ::std::result::Result::Err(::kal::CommandParseError::IncompleteCommand),
                 }
             }
         }

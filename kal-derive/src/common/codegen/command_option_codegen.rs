@@ -55,6 +55,16 @@ impl CommandOption {
         )
     }
 
+    pub fn check_missed<T: ToTokens>(&self, collection_name: T) -> quote::__private::TokenStream {
+        let Self { ident, name, .. } = self;
+        let ident = format_ident!("{}_field", ident);
+        quote! {
+            if #ident.is_none() {
+                #collection_name.push(#name);
+            }
+        }
+    }
+
     pub fn transform_hint_part(&self) -> quote::__private::TokenStream {
         let Self { ty, take_rest, .. } = self;
         let make_greedy = if *take_rest {
@@ -67,7 +77,11 @@ impl CommandOption {
 }
 
 pub trait CommandOptionsExt {
-    fn build_struct<T: ToTokens>(&self, name: T) -> quote::__private::TokenStream;
+    fn build_struct<T: ToTokens, U: ToTokens>(
+        &self,
+        name: T,
+        missing_arguments: U,
+    ) -> quote::__private::TokenStream;
 
     fn make_execute_work<T: ToTokens>(&self, name: T) -> quote::__private::TokenStream;
 
@@ -75,7 +89,11 @@ pub trait CommandOptionsExt {
 }
 
 impl CommandOptionsExt for Vec<CommandOption> {
-    fn build_struct<T: ToTokens>(&self, name: T) -> quote::__private::TokenStream {
+    fn build_struct<T: ToTokens, U: ToTokens>(
+        &self,
+        name: T,
+        missing_arguments: U,
+    ) -> quote::__private::TokenStream {
         let idents: Vec<_> = self.iter().map(|option| &option.ident).collect();
         let idents_field: Vec<_> = self
             .iter()
@@ -85,11 +103,11 @@ impl CommandOptionsExt for Vec<CommandOption> {
         quote! {
             match (#(#idents_field),*) {
                 (#(::std::option::Option::Some(#idents)),*) => {
-                    ::std::option::Option::Some(#name {
+                    ::std::result::Result::Ok(#name {
                         #(#idents),*
                     })
                 }
-                _ => ::std::option::Option::None,
+                _ => ::std::result::Result::Err(::kal::CommandParseError::MissingArguments(#missing_arguments)),
             }
         }
     }
@@ -99,16 +117,29 @@ impl CommandOptionsExt for Vec<CommandOption> {
         let (options_match_arm_named, options_match_arm_positioned): (Vec<_>, Vec<_>) = self
             .iter()
             .map(|opt| {
-                opt.match_arms(quote! {
-                    ::std::option::Option::Some(value.clone().try_into().ok()?)
-                })
+                opt.match_arms(quote! { value.clone().try_into().ok() })
             })
             .unzip();
-        let options_build_struct = self.build_struct(name);
+        let options_check_missed: Vec<_> = self
+            .iter()
+            .map(|opt| {
+                opt.check_missed(quote! {
+                    missing_arguments
+                })
+            })
+            .collect();
+        let options_build_struct = self.build_struct(
+            name,
+            quote! {
+                missing_arguments
+            },
+        );
 
         quote! {
             {
                 #(#options_declaration)*
+
+                let mut missing_arguments = Vec::new();
 
                 for argument in arguments {
                     match argument {
@@ -126,6 +157,8 @@ impl CommandOptionsExt for Vec<CommandOption> {
                         }
                     }
                 }
+
+                #(#options_check_missed)*
 
                 #options_build_struct
             }

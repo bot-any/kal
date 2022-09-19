@@ -1,6 +1,6 @@
 use kal::{
     lex::{CommandLexer, TokenTransformer, TransformHintProvider},
-    Command,
+    Command, CommandParseError,
 };
 
 #[test]
@@ -18,17 +18,22 @@ fn transform() {
 
     let lexer = CommandLexer::new("world");
     let fragments: Result<Vec<_>, _> = transformer.transform(lexer).collect();
-    dbg!(&fragments);
-    let parsed = fragments.map(|fragments| Hello::parse(&fragments));
-    assert_eq!(Ok(Some(Hello::World { test: None })), parsed);
+    let parsed = fragments
+        .as_ref()
+        .map_err(CommandParseError::from)
+        .and_then(|fragments| Hello::parse(fragments));
+    assert_eq!(Ok(Hello::World { test: None }), parsed);
 
     let lexer = CommandLexer::new("world it is great");
     let fragments: Result<Vec<_>, _> = transformer.transform(lexer).collect();
-    let parsed = fragments.map(|fragments| Hello::parse(&fragments));
+    let parsed = fragments
+        .as_ref()
+        .map_err(CommandParseError::from)
+        .and_then(|fragments| Hello::parse(fragments));
     assert_eq!(
-        Ok(Some(Hello::World {
+        Ok(Hello::World {
             test: Some("it is great".to_string())
-        })),
+        }),
         parsed
     );
 }

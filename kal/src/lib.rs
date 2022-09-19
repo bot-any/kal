@@ -13,11 +13,13 @@ pub use command_fragment::{
     CommandArgument, CommandArgumentValue, CommandArgumentValueTypeMismatchError, CommandFragment,
 };
 pub use command_spec::{CommandOption, CommandOptionValueKind, CommandOptionValueTy, CommandSpec};
+pub use error::CommandParseError;
 pub use kal_derive::Command;
 
 mod command;
 mod command_fragment;
 mod command_group;
 mod command_spec;
+mod error;
 
 pub mod lex;

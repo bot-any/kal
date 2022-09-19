@@ -1,4 +1,4 @@
-use crate::{CommandFragment, CommandSpec};
+use crate::{CommandFragment, CommandSpec, CommandParseError};
 
 /// The command
 pub trait Command: Sized {
@@ -9,5 +9,5 @@ pub trait Command: Sized {
     fn spec() -> CommandSpec;
 
     /// Try parse command from [`CommandFragment`] sequence.
-    fn parse(fragments: &[CommandFragment]) -> Option<Self>;
+    fn parse(fragments: &[CommandFragment]) -> Result<Self, CommandParseError>;
 }

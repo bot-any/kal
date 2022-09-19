@@ -7,7 +7,7 @@ fn just_execute() {
     struct Basic;
 
     assert_eq!(
-        Some(Basic),
+        Ok(Basic),
         Basic::parse(&[CommandFragment::Execute(vec![])])
     );
 }
@@ -34,7 +34,7 @@ fn execute_over_subcommand() {
     }
 
     assert_eq!(
-        Some(D::C(C::B(B::A(A)))),
+        Ok(D::C(C::B(B::A(A)))),
         D::parse(&[
             CommandFragment::Select("c".to_string()),
             CommandFragment::Select("b".to_string()),
@@ -58,7 +58,7 @@ fn optionful() {
     }
 
     assert_eq!(
-        Some(A {
+        Ok(A {
             s: "string".to_string(),
             i: 64,
             f: 3.141592
@@ -74,7 +74,7 @@ fn optionful() {
     );
 
     assert_eq!(
-        Some(A {
+        Ok(A {
             s: "string".to_string(),
             i: 64,
             f: 3.141592
