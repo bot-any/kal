@@ -89,7 +89,7 @@ pub fn actual_derive_transform_hint(derive_input: DeriveInput) -> error::Result<
                         let ty = &fields.unnamed[0].ty;
                         subcommands.push((
                             quote! { <#ty as ::kal::Command>::NAME },
-                            quote! { <#ty as ::kal::lex::TransformHint>::hint() },
+                            quote! { <#ty as ::kal::lex::TransformHintProvider>::hint() },
                         ));
                     }
                     Fields::Unit => {
