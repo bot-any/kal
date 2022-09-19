@@ -4,7 +4,7 @@
 ///
 /// Example:
 /// ```rust
-/// # use kal::{Command, command_group, CommandFragment};
+/// # use kal::{Command, command_group, CommandFragment, CommandParseError};
 /// # #[derive(Debug, PartialEq)]
 /// #[derive(Command)]
 /// #[command(name = "a", description = "")]
@@ -24,9 +24,9 @@
 ///     }
 /// }
 ///
-/// assert_eq!(Some(Root::A(A)), Root::parse(&[CommandFragment::Select("a".to_string()), CommandFragment::Execute(vec![])]));
-/// assert_eq!(Some(Root::B(B)), Root::parse(&[CommandFragment::Select("b".to_string()), CommandFragment::Execute(vec![])]));
-/// assert_eq!(None, Root::parse(&[CommandFragment::Select("c".to_string()), CommandFragment::Execute(vec![])]));
+/// assert_eq!(Ok(Root::A(A)), Root::parse(&[CommandFragment::Select("a".to_string()), CommandFragment::Execute(vec![])]));
+/// assert_eq!(Ok(Root::B(B)), Root::parse(&[CommandFragment::Select("b".to_string()), CommandFragment::Execute(vec![])]));
+/// assert_eq!(Err(CommandParseError::UnknownCommand(&"c".to_string())), Root::parse(&[CommandFragment::Select("c".to_string()), CommandFragment::Execute(vec![])]));
 #[macro_export]
 macro_rules! command_group {
     (
@@ -68,7 +68,7 @@ macro_rules! command_group {
                 }
             }
 
-            fn parse(fragments: &[::kal::CommandFragment]) -> ::std::option::Option<Self> {
+            fn parse(fragments: &[::kal::CommandFragment]) -> ::std::result::Result<Self, ::kal::CommandParseError> {
                 match fragments {
                     [::kal::CommandFragment::Select(name), rest @ ..] => {
                         match name.as_str() {
@@ -76,10 +76,11 @@ macro_rules! command_group {
                                 <$path as ::kal::Command>::NAME =>
                                     <$path as ::kal::Command>::parse(rest).map($name::$variant),
                             )*
-                            _ => ::std::option::Option::None,
+                            _ => ::std::result::Result::Err(::kal::CommandParseError::UnknownCommand(name)),
                         }
                     },
-                    _ => ::std::option::Option::None,
+                    [::kal::CommandFragment::Execute(_), ..] => ::std::result::Result::Err(::kal::CommandParseError::ExecuteTooEarly),
+                    [] => ::std::result::Result::Err(::kal::CommandParseError::IncompleteCommand),
                 }
             }
         }

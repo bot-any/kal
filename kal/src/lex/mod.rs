@@ -107,7 +107,7 @@
 //!
 //! ```rust
 //! # use kal::Command;
-//! # use kal::lex::{TransformHintProvider, TransformHint, TransformHintPart, TransformHintKind};
+//! # use kal::lex::{TransformHintProvider, TransformHint, TransformHintPart, TransformHintPartKind};
 //! # use std::collections::HashMap;
 //! #[derive(Command, TransformHintProvider)]
 //! #[command(name = "hello", description = "")]
@@ -131,14 +131,14 @@
 //!             "world",
 //!             TransformHint::Execute(vec![TransformHintPart {
 //!                 multiple: false,
-//!                 kind: TransformHintKind::String,
+//!                 kind: TransformHintPartKind::String,
 //!             }]),
 //!         ),
 //!         (
 //!             "sekai",
 //!             TransformHint::Execute(vec![TransformHintPart {
 //!                 multiple: false,
-//!                 kind: TransformHintKind::StringGreedy,
+//!                 kind: TransformHintPartKind::StringGreedy,
 //!             }]),
 //!         ),
 //!    ]))
