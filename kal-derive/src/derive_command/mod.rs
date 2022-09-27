@@ -7,6 +7,7 @@
 use crate::common::{
     codegen::command_option_codegen::{CommandOption, CommandOptionsExt},
     config::{argument_config::ArgumentConfig, command_config::CommandConfig},
+    doc_string::join_doc_string,
     error::{self, Error},
 };
 use darling::{FromDeriveInput, FromField, FromVariant};
@@ -16,8 +17,8 @@ use syn::{DeriveInput, Fields};
 
 pub fn actual_derive_command(derive_input: DeriveInput) -> error::Result<TokenStream> {
     let root_command_config = CommandConfig::from_derive_input(&derive_input)?;
-    let (root_command_name, root_command_description) =
-        root_command_config.prepare(&derive_input.ident)?;
+    let root_command_name = root_command_config.name_or_error_from(&derive_input.ident)?;
+    let root_command_description = join_doc_string(&derive_input.attrs);
 
     let name = derive_input.ident;
 
@@ -81,8 +82,9 @@ pub fn actual_derive_command(derive_input: DeriveInput) -> error::Result<TokenSt
                             self_discovered.push(variant_full_name);
                             options = inner_options;
                         } else {
-                            let (command_name, command_description) =
-                                command_config.prepare(&variant_full_name)?;
+                            let (command_name) =
+                                command_config.name_or_error_from(&variant_full_name)?;
+                            let command_description = join_doc_string(&variant.attrs);
 
                             let inner_options_kal: Vec<_> =
                                 inner_options.iter().map(|opt| opt.kal_option()).collect();
@@ -124,8 +126,7 @@ pub fn actual_derive_command(derive_input: DeriveInput) -> error::Result<TokenSt
                         let command_config = command_config?;
 
                         let command_name = command_config.name_or_error_from(&variant.ident)?;
-                        let command_description =
-                            command_config.description_or_error_from(&variant.ident)?;
+                        let command_description = join_doc_string(&variant.attrs);
                         subcommands.push(quote! {
                             ::kal::CommandSpec {
                                 name: #command_name,

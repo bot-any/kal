@@ -3,7 +3,7 @@ use kal::{Command, CommandArgument, CommandArgumentValue, CommandFragment};
 #[test]
 fn just_execute() {
     #[derive(Command, Debug, PartialEq)]
-    #[command(name = "basic", description = "basic struct")]
+    #[command(name = "basic")]
     struct Basic;
 
     assert_eq!(
@@ -15,20 +15,20 @@ fn just_execute() {
 #[test]
 fn execute_over_subcommand() {
     #[derive(Command, Debug, PartialEq)]
-    #[command(name = "a", description = "")]
+    #[command(name = "a")]
     struct A;
     #[derive(Command, Debug, PartialEq)]
-    #[command(name = "b", description = "")]
+    #[command(name = "b")]
     enum B {
         A(A),
     }
     #[derive(Command, Debug, PartialEq)]
-    #[command(name = "c", description = "")]
+    #[command(name = "c")]
     enum C {
         B(B),
     }
     #[derive(Command, Debug, PartialEq)]
-    #[command(name = "d", description = "")]
+    #[command(name = "d")]
     enum D {
         C(C),
     }
@@ -47,13 +47,13 @@ fn execute_over_subcommand() {
 #[test]
 fn optionful() {
     #[derive(Command, Debug, PartialEq)]
-    #[command(name = "a", description = "")]
+    #[command(name = "a")]
     struct A {
-        #[argument(name = "s", description = "String")]
+        #[argument(name = "s")]
         s: String,
-        #[argument(name = "i", description = "i64")]
+        #[argument(name = "i")]
         i: i64,
-        #[argument(name = "f", description = "f64")]
+        #[argument(name = "f")]
         f: f64,
     }
 
