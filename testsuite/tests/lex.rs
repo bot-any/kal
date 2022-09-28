@@ -1,4 +1,5 @@
 use kal::lex::{CommandLexError, CommandLexer, CommandToken, RawStringPattern};
+use pretty_assertions::assert_eq;
 
 #[test]
 fn lex() {

@@ -41,12 +41,14 @@ pub fn actual_derive_command(derive_input: DeriveInput) -> error::Result<TokenSt
                     .ident
                     .clone()
                     .ok_or_else(|| Error::new(&field, "enum variant field must have a name"))?;
+                let argument_name = argument_config.name;
+                let argument_description = join_doc_string(&field.attrs);
 
                 options.push(CommandOption {
                     ident: field_ident,
-                    name: argument_config.name,
+                    name: argument_name,
                     position: options.len(),
-                    description: argument_config.description,
+                    description: argument_description,
                     ty: field.ty,
                     take_rest: argument_config.take_rest,
                 });
@@ -64,11 +66,14 @@ pub fn actual_derive_command(derive_input: DeriveInput) -> error::Result<TokenSt
                             let ident = field.ident.clone().ok_or_else(|| {
                                 Error::new(&field, "enum variant field must have a name")
                             })?;
+
+                            let argument_name = argument_config.name;
+                            let argument_description = join_doc_string(&field.attrs);
                             inner_options.push(CommandOption {
                                 ident,
-                                name: argument_config.name,
+                                name: argument_name,
                                 position: inner_options.len(),
-                                description: argument_config.description,
+                                description: argument_description,
                                 ty: field.ty,
                                 take_rest: argument_config.take_rest,
                             });
@@ -82,7 +87,7 @@ pub fn actual_derive_command(derive_input: DeriveInput) -> error::Result<TokenSt
                             self_discovered.push(variant_full_name);
                             options = inner_options;
                         } else {
-                            let (command_name) =
+                            let command_name =
                                 command_config.name_or_error_from(&variant_full_name)?;
                             let command_description = join_doc_string(&variant.attrs);
 

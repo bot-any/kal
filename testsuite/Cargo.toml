@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 kal = { path = "../kal", version = "*", features = ["lex"] }
+pretty_assertions = "1.3.0"

@@ -1,4 +1,5 @@
 use kal::{Command, CommandOption, CommandOptionValueKind, CommandSpec};
+use pretty_assertions::assert_eq;
 
 #[test]
 fn basic_enum() {
@@ -9,7 +10,7 @@ fn basic_enum() {
         /// a
         #[command(name = "a")]
         _A,
-        
+
         /// b
         #[command(name = "b")]
         _B,
@@ -89,7 +90,7 @@ fn struct_style_enum() {
         #[argument(name = "s")]
         _s: String,
     }
-    
+
     /// basic struct
     #[derive(Command)]
     #[command(name = "basic")]

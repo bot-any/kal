@@ -1,4 +1,5 @@
 use kal::{Command, CommandArgument, CommandArgumentValue, CommandFragment};
+use pretty_assertions::assert_eq;
 
 #[test]
 fn just_execute() {
@@ -6,10 +7,7 @@ fn just_execute() {
     #[command(name = "basic")]
     struct Basic;
 
-    assert_eq!(
-        Ok(Basic),
-        Basic::parse(&[CommandFragment::Execute(vec![])])
-    );
+    assert_eq!(Ok(Basic), Basic::parse(&[CommandFragment::Execute(vec![])]));
 }
 
 #[test]
