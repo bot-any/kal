@@ -7,11 +7,9 @@ use pretty_assertions::assert_eq;
 #[test]
 fn transform() {
     #[derive(Debug, PartialEq, Command, TransformHintProvider)]
-    #[command(name = "hello")]
     enum Hello {
-        #[command(name = "world")]
         World {
-            #[argument(name = "test", take_rest)]
+            #[argument(take_rest)]
             test: Option<String>,
         },
     }

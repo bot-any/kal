@@ -5,19 +5,16 @@ use pretty_assertions::assert_eq;
 fn basic_enum() {
     /// basic struct
     #[derive(Command)]
-    #[command(name = "basic")]
-    enum Test {
+    enum Basic {
         /// a
-        #[command(name = "a")]
-        _A,
+        A,
 
         /// b
-        #[command(name = "b")]
-        _B,
+        B,
     }
 
     assert_eq!(
-        Test::spec(),
+        Basic::spec(),
         CommandSpec {
             name: "basic",
             description: "basic struct",
@@ -43,25 +40,22 @@ fn basic_enum() {
 fn struct_in_enum() {
     /// a
     #[derive(Command)]
-    #[command(name = "a")]
     struct A;
 
-    /// basic struct
+    /// test struct
     #[derive(Command)]
-    #[command(name = "basic")]
     enum Test {
         A(A),
 
         /// b
-        #[command(name = "b")]
-        _B,
+        B,
     }
 
     assert_eq!(
         Test::spec(),
         CommandSpec {
-            name: "basic",
-            description: "basic struct",
+            name: "test",
+            description: "test struct",
             options: vec![],
             subcommands: vec![
                 CommandSpec {
@@ -84,33 +78,28 @@ fn struct_in_enum() {
 fn struct_style_enum() {
     /// a
     #[derive(Command)]
-    #[command(name = "a")]
     struct A {
         /// s
-        #[argument(name = "s")]
-        _s: String,
+        s: String,
     }
 
-    /// basic struct
+    /// test struct
     #[derive(Command)]
-    #[command(name = "basic")]
     enum Test {
         A(A),
 
         /// b
-        #[command(name = "b")]
         B {
             /// s
-            #[argument(name = "s")]
-            _s: String,
+            s: String,
         },
     }
 
     assert_eq!(
         Test::spec(),
         CommandSpec {
-            name: "basic",
-            description: "basic struct",
+            name: "test",
+            description: "test struct",
             options: vec![],
             subcommands: vec![
                 CommandSpec {

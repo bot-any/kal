@@ -5,11 +5,10 @@ use pretty_assertions::assert_eq;
 fn basic_struct() {
     /// basic struct
     #[derive(Command)]
-    #[command(name = "basic")]
-    struct Test;
+    struct Basic;
 
     assert_eq!(
-        Test::spec(),
+        Basic::spec(),
         CommandSpec {
             name: "basic",
             description: "basic struct",
@@ -21,28 +20,24 @@ fn basic_struct() {
 
 #[test]
 fn required_arguments() {
-    /// basic struct
+    /// test struct
     #[derive(Command)]
-    #[command(name = "basic")]
     struct Test {
         /// String
-        #[argument(name = "s")]
-        _s: String,
+        s: String,
 
         /// i64
-        #[argument(name = "i")]
-        _i: i64,
+        i: i64,
 
         /// f64
-        #[argument(name = "f")]
-        _f: f64,
+        f: f64,
     }
 
     assert_eq!(
         Test::spec(),
         CommandSpec {
-            name: "basic",
-            description: "basic struct",
+            name: "test",
+            description: "test struct",
             options: vec![
                 CommandOption {
                     name: "s",
@@ -70,28 +65,24 @@ fn required_arguments() {
 
 #[test]
 fn optional_arguments() {
-    /// basic struct
+    /// test struct
     #[derive(Command)]
-    #[command(name = "basic")]
     struct Test {
         /// String
-        #[argument(name = "s")]
-        _s: Option<String>,
+        s: Option<String>,
 
         /// i64
-        #[argument(name = "i")]
-        _i: Option<i64>,
+        i: Option<i64>,
 
         /// f64
-        #[argument(name = "f")]
-        _f: Option<f64>,
+        f: Option<f64>,
     }
 
     assert_eq!(
         Test::spec(),
         CommandSpec {
-            name: "basic",
-            description: "basic struct",
+            name: "test",
+            description: "test struct",
             options: vec![
                 CommandOption {
                     name: "s",

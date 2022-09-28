@@ -4,7 +4,6 @@ use pretty_assertions::assert_eq;
 #[test]
 fn just_execute() {
     #[derive(Command, Debug, PartialEq)]
-    #[command(name = "basic")]
     struct Basic;
 
     assert_eq!(Ok(Basic), Basic::parse(&[CommandFragment::Execute(vec![])]));
@@ -13,20 +12,18 @@ fn just_execute() {
 #[test]
 fn execute_over_subcommand() {
     #[derive(Command, Debug, PartialEq)]
-    #[command(name = "a")]
     struct A;
+
     #[derive(Command, Debug, PartialEq)]
-    #[command(name = "b")]
     enum B {
         A(A),
     }
+
     #[derive(Command, Debug, PartialEq)]
-    #[command(name = "c")]
     enum C {
         B(B),
     }
     #[derive(Command, Debug, PartialEq)]
-    #[command(name = "d")]
     enum D {
         C(C),
     }
@@ -45,13 +42,9 @@ fn execute_over_subcommand() {
 #[test]
 fn optionful() {
     #[derive(Command, Debug, PartialEq)]
-    #[command(name = "a")]
     struct A {
-        #[argument(name = "s")]
         s: String,
-        #[argument(name = "i")]
         i: i64,
-        #[argument(name = "f")]
         f: f64,
     }
 

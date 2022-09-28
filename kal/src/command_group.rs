@@ -7,12 +7,10 @@
 /// # use kal::{Command, command_group, CommandFragment, CommandParseError};
 /// # #[derive(Debug, PartialEq)]
 /// #[derive(Command)]
-/// #[command(name = "a")]
 /// struct A;
 ///
 /// # #[derive(Debug, PartialEq)]
 /// #[derive(Command)]
-/// #[command(name = "b")]
 /// struct B;
 ///
 ///
