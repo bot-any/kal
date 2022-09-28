@@ -6,6 +6,7 @@ use syn::{DeriveInput, Fields};
 use crate::common::{
     codegen::command_option_codegen::{CommandOption, CommandOptionsExt},
     config::{argument_config::ArgumentConfig, command_config::CommandConfig},
+    doc_string::join_doc_string,
     error::{self, Error},
 };
 
@@ -28,12 +29,14 @@ pub fn actual_derive_transform_hint(derive_input: DeriveInput) -> error::Result<
                     .ident
                     .clone()
                     .ok_or_else(|| Error::new(&field, "enum variant field must have a name"))?;
+                let argument_name = argument_config.name;
+                let argument_description = join_doc_string(&field.attrs);
 
                 options.push(CommandOption {
                     ident: field_ident,
-                    name: argument_config.name,
+                    name: argument_name,
                     position: options.len(),
-                    description: argument_config.description,
+                    description: argument_description,
                     ty: field.ty,
                     take_rest: argument_config.take_rest,
                 });
@@ -51,11 +54,13 @@ pub fn actual_derive_transform_hint(derive_input: DeriveInput) -> error::Result<
                             let ident = field.ident.clone().ok_or_else(|| {
                                 Error::new(&field, "enum variant field must have a name")
                             })?;
+                            let argument_name = argument_config.name;
+                            let argument_description = join_doc_string(&field.attrs);
                             inner_options.push(CommandOption {
                                 ident,
-                                name: argument_config.name,
+                                name: argument_name,
                                 position: inner_options.len(),
-                                description: argument_config.description,
+                                description: argument_description,
                                 ty: field.ty,
                                 take_rest: argument_config.take_rest,
                             });

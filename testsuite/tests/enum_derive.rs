@@ -1,13 +1,18 @@
 use kal::{Command, CommandOption, CommandOptionValueKind, CommandSpec};
+use pretty_assertions::assert_eq;
 
 #[test]
 fn basic_enum() {
+    /// basic struct
     #[derive(Command)]
-    #[command(name = "basic", description = "basic struct")]
+    #[command(name = "basic")]
     enum Test {
-        #[command(name = "a", description = "a")]
+        /// a
+        #[command(name = "a")]
         _A,
-        #[command(name = "b", description = "b")]
+
+        /// b
+        #[command(name = "b")]
         _B,
     }
 
@@ -36,14 +41,19 @@ fn basic_enum() {
 }
 #[test]
 fn struct_in_enum() {
+    /// a
     #[derive(Command)]
-    #[command(name = "a", description = "a")]
+    #[command(name = "a")]
     struct A;
+
+    /// basic struct
     #[derive(Command)]
-    #[command(name = "basic", description = "basic struct")]
+    #[command(name = "basic")]
     enum Test {
         A(A),
-        #[command(name = "b", description = "b")]
+
+        /// b
+        #[command(name = "b")]
         _B,
     }
 
@@ -72,19 +82,26 @@ fn struct_in_enum() {
 }
 #[test]
 fn struct_style_enum() {
+    /// a
     #[derive(Command)]
-    #[command(name = "a", description = "a")]
+    #[command(name = "a")]
     struct A {
-        #[argument(name = "s", description = "s")]
+        /// s
+        #[argument(name = "s")]
         _s: String,
     }
+
+    /// basic struct
     #[derive(Command)]
-    #[command(name = "basic", description = "basic struct")]
+    #[command(name = "basic")]
     enum Test {
         A(A),
-        #[command(name = "b", description = "b")]
+
+        /// b
+        #[command(name = "b")]
         B {
-            #[argument(name = "s", description = "s")]
+            /// s
+            #[argument(name = "s")]
             _s: String,
         },
     }

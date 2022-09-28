@@ -7,6 +7,7 @@ use kal::{
     },
     CommandArgument, CommandArgumentValue, CommandFragment,
 };
+use pretty_assertions::assert_eq;
 
 #[test]
 fn transform() {

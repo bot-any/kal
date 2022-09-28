@@ -2,15 +2,16 @@ use kal::{
     lex::{CommandLexer, TokenTransformer, TransformHintProvider},
     Command, CommandParseError,
 };
+use pretty_assertions::assert_eq;
 
 #[test]
 fn transform() {
     #[derive(Debug, PartialEq, Command, TransformHintProvider)]
-    #[command(name = "hello", description = "")]
+    #[command(name = "hello")]
     enum Hello {
-        #[command(name = "world", description = "")]
+        #[command(name = "world")]
         World {
-            #[argument(name = "test", description = "", take_rest)]
+            #[argument(name = "test", take_rest)]
             test: Option<String>,
         },
     }

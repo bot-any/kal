@@ -1,9 +1,11 @@
 use kal::{Command, CommandOption, CommandOptionValueKind, CommandSpec};
+use pretty_assertions::assert_eq;
 
 #[test]
 fn basic_struct() {
+    /// basic struct
     #[derive(Command)]
-    #[command(name = "basic", description = "basic struct")]
+    #[command(name = "basic")]
     struct Test;
 
     assert_eq!(
@@ -19,14 +21,20 @@ fn basic_struct() {
 
 #[test]
 fn required_arguments() {
+    /// basic struct
     #[derive(Command)]
-    #[command(name = "basic", description = "basic struct")]
+    #[command(name = "basic")]
     struct Test {
-        #[argument(name = "s", description = "String")]
+        /// String
+        #[argument(name = "s")]
         _s: String,
-        #[argument(name = "i", description = "i64")]
+
+        /// i64
+        #[argument(name = "i")]
         _i: i64,
-        #[argument(name = "f", description = "f64")]
+
+        /// f64
+        #[argument(name = "f")]
         _f: f64,
     }
 
@@ -62,14 +70,20 @@ fn required_arguments() {
 
 #[test]
 fn optional_arguments() {
+    /// basic struct
     #[derive(Command)]
-    #[command(name = "basic", description = "basic struct")]
+    #[command(name = "basic")]
     struct Test {
-        #[argument(name = "s", description = "String")]
+        /// String
+        #[argument(name = "s")]
         _s: Option<String>,
-        #[argument(name = "i", description = "i64")]
+
+        /// i64
+        #[argument(name = "i")]
         _i: Option<i64>,
-        #[argument(name = "f", description = "f64")]
+
+        /// f64
+        #[argument(name = "f")]
         _f: Option<f64>,
     }
 
