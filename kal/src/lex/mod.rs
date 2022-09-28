@@ -110,16 +110,12 @@
 //! # use kal::lex::{TransformHintProvider, TransformHint, TransformHintPart, TransformHintPartKind};
 //! # use std::collections::HashMap;
 //! #[derive(Command, TransformHintProvider)]
-//! #[command(name = "hello")]
 //! pub enum Hello {
-//!     #[command(name = "world")]
 //!     World {
-//!         #[argument(name = "argument")]
 //!         argument: String,
 //!     },
-//!     #[command(name = "sekai")]
 //!     Sekai {
-//!         #[argument(name = "argument", take_rest)]
+//!         #[argument(take_rest)]
 //!         argument: String,
 //!     },
 //! }

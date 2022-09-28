@@ -29,7 +29,7 @@ pub fn actual_derive_transform_hint(derive_input: DeriveInput) -> error::Result<
                     .ident
                     .clone()
                     .ok_or_else(|| Error::new(&field, "enum variant field must have a name"))?;
-                let argument_name = argument_config.name;
+                let argument_name = argument_config.rename_or(&field_ident);
                 let argument_description = join_doc_string(&field.attrs);
 
                 options.push(CommandOption {
@@ -54,7 +54,7 @@ pub fn actual_derive_transform_hint(derive_input: DeriveInput) -> error::Result<
                             let ident = field.ident.clone().ok_or_else(|| {
                                 Error::new(&field, "enum variant field must have a name")
                             })?;
-                            let argument_name = argument_config.name;
+                            let argument_name = argument_config.rename_or(&ident);
                             let argument_description = join_doc_string(&field.attrs);
                             inner_options.push(CommandOption {
                                 ident,
@@ -74,8 +74,7 @@ pub fn actual_derive_transform_hint(derive_input: DeriveInput) -> error::Result<
                             self_discovered.push(variant_full_name);
                             options = inner_options;
                         } else {
-                            let command_name =
-                                command_config.name_or_error_from(&variant_full_name)?;
+                            let command_name = command_config.rename_or(&variant_ident);
                             let transform_hint_vec = inner_options.make_transform_hint_vec();
 
                             subcommands.push((
@@ -100,7 +99,7 @@ pub fn actual_derive_transform_hint(derive_input: DeriveInput) -> error::Result<
                     Fields::Unit => {
                         let command_config = command_config?;
 
-                        let command_name = command_config.name_or_error_from(&variant.ident)?;
+                        let command_name = command_config.rename_or(&variant.ident);
                         subcommands
                             .push((quote! { #command_name }, quote! { ::std::vec::Vec::new() }));
                     }
