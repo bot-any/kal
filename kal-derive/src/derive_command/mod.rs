@@ -51,6 +51,7 @@ pub fn actual_derive_command(derive_input: DeriveInput) -> error::Result<TokenSt
                     description: argument_description,
                     ty: field.ty,
                     take_rest: argument_config.take_rest,
+                    default: argument_config.default,
                 });
             }
         }
@@ -76,6 +77,7 @@ pub fn actual_derive_command(derive_input: DeriveInput) -> error::Result<TokenSt
                                 description: argument_description,
                                 ty: field.ty,
                                 take_rest: argument_config.take_rest,
+                                default: argument_config.default,
                             });
                         }
 
