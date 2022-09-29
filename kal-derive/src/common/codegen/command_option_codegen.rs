@@ -1,5 +1,5 @@
 use quote::{format_ident, quote, ToTokens};
-use syn::{Ident, Type};
+use syn::{Expr, Ident, Type};
 
 pub struct CommandOption {
     pub ident: Ident,
@@ -8,14 +8,21 @@ pub struct CommandOption {
     pub description: String,
     pub ty: Type,
     pub take_rest: bool,
+    pub default: Option<Expr>,
 }
 
 impl CommandOption {
     pub fn declaration(&self) -> quote::__private::TokenStream {
-        let Self { ident, ty, .. } = self;
+        let Self {
+            ident, ty, default, ..
+        } = self;
         let ident = format_ident!("{}_field", ident);
+        let default = default
+            .as_ref()
+            .map(|expr| quote! { Some(#expr) })
+            .unwrap_or(quote! { <#ty as ::kal::CommandOptionValueTy>::default() });
         quote! {
-            let mut #ident: ::std::option::Option<#ty> = <#ty as ::kal::CommandOptionValueTy>::default();
+            let mut #ident: ::std::option::Option<#ty> = #default;
         }
     }
 
@@ -116,9 +123,7 @@ impl CommandOptionsExt for Vec<CommandOption> {
         let options_declaration: Vec<_> = self.iter().map(|opt| opt.declaration()).collect();
         let (options_match_arm_named, options_match_arm_positioned): (Vec<_>, Vec<_>) = self
             .iter()
-            .map(|opt| {
-                opt.match_arms(quote! { value.clone().try_into().ok() })
-            })
+            .map(|opt| opt.match_arms(quote! { value.clone().try_into().ok() }))
             .unzip();
         let options_check_missed: Vec<_> = self
             .iter()

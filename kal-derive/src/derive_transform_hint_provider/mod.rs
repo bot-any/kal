@@ -39,6 +39,7 @@ pub fn actual_derive_transform_hint(derive_input: DeriveInput) -> error::Result<
                     description: argument_description,
                     ty: field.ty,
                     take_rest: argument_config.take_rest,
+                    default: argument_config.default,
                 });
             }
         }
@@ -63,6 +64,7 @@ pub fn actual_derive_transform_hint(derive_input: DeriveInput) -> error::Result<
                                 description: argument_description,
                                 ty: field.ty,
                                 take_rest: argument_config.take_rest,
+                                default: argument_config.default,
                             });
                         }
 
