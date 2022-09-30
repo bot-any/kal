@@ -17,7 +17,7 @@ pub fn multiple_f64() {
         }),
         Command::parse(&[CommandFragment::Execute(vec![CommandArgument::Positioned(
             0,
-            CommandArgumentValue::String("0 1 2".to_string())
+            CommandArgumentValue::String("0 1   2".to_string())
         ),])])
     )
 }
@@ -36,7 +36,7 @@ pub fn multiple_word() {
         }),
         Command::parse(&[CommandFragment::Execute(vec![CommandArgument::Positioned(
             0,
-            CommandArgumentValue::String("0,1,2".to_string())
+            CommandArgumentValue::String("0, 1, 2".to_string())
         ),])])
     )
 }

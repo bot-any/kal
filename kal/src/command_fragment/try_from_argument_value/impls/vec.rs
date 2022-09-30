@@ -8,7 +8,7 @@ macro_rules! try_into_vec {
         match $value {
             CommandArgumentValue::String(inner) => inner
                 .$($split)*
-                .map(|s| T::try_from_argument_value(CommandArgumentValue::String(s.to_string()), false))
+                .map(|s| T::try_from_argument_value(CommandArgumentValue::String(s.trim().to_string()), false))
                 .collect::<Result<_, _>>(),
             value => Ok(vec![T::try_from_argument_value(value, $strict)?]),
         }
