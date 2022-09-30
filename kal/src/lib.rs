@@ -10,7 +10,8 @@
 
 pub use command::Command;
 pub use command_fragment::{
-    CommandArgument, CommandArgumentValue, CommandArgumentValueTypeMismatchError, CommandFragment,
+    CommaSeparated, CommandArgument, CommandArgumentValue, CommandArgumentValueType,
+    CommandFragment, SpaceSeparated, TryFromArgumentValue, TryFromArgumentValueError,
 };
 pub use command_spec::{CommandOption, CommandOptionValueKind, CommandOptionValueTy, CommandSpec};
 pub use error::CommandParseError;

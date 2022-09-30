@@ -44,17 +44,18 @@ impl CommandOption {
         }
     }
 
-    pub fn match_arms<T: ToTokens>(
-        &self,
-        value: T,
-    ) -> (quote::__private::TokenStream, quote::__private::TokenStream) {
+    pub fn match_arms(&self) -> (quote::__private::TokenStream, quote::__private::TokenStream) {
         let Self {
             ident,
             name,
             position,
+            ty,
             ..
         } = self;
         let ident = format_ident!("{}_field", ident);
+        let value = quote! {
+            <#ty as kal::TryFromArgumentValue>::try_from_argument_value(value.clone(), true).ok()
+        };
         let assignment = quote! { #ident = #value };
         (
             quote! { #name => #assignment },
@@ -121,10 +122,8 @@ impl CommandOptionsExt for Vec<CommandOption> {
 
     fn make_execute_work<T: ToTokens>(&self, name: T) -> quote::__private::TokenStream {
         let options_declaration: Vec<_> = self.iter().map(|opt| opt.declaration()).collect();
-        let (options_match_arm_named, options_match_arm_positioned): (Vec<_>, Vec<_>) = self
-            .iter()
-            .map(|opt| opt.match_arms(quote! { value.clone().try_into().ok() }))
-            .unzip();
+        let (options_match_arm_named, options_match_arm_positioned): (Vec<_>, Vec<_>) =
+            self.iter().map(|opt| opt.match_arms()).unzip();
         let options_check_missed: Vec<_> = self
             .iter()
             .map(|opt| {

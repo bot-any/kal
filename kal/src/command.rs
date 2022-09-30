@@ -1,4 +1,4 @@
-use crate::{CommandFragment, CommandSpec, CommandParseError};
+use crate::{CommandFragment, CommandParseError, CommandSpec};
 
 /// The command
 pub trait Command: Sized {

@@ -1,10 +1,8 @@
 use core::fmt;
 
-use crate::{CommandArgument, CommandArgumentValue, CommandFragment};
+use crate::{lex::TransformHintPart, CommandArgument, CommandArgumentValue, CommandFragment};
 
-use super::{
-    CommandLexError, CommandToken, RawStringPattern, TransformHint, TransformHintPartKind,
-};
+use super::{CommandLexError, CommandToken, RawStringPattern, TransformHint};
 
 /// An error that can appear while transform the token produced into a command fragment.
 #[derive(Debug, PartialEq, Eq)]
@@ -192,11 +190,8 @@ where
 
         let mut hint = hint_seq.next();
         loop {
-            // TODO: handle multiple elements
-            let _multiple = hint.map(|hint| hint.multiple).unwrap_or(false);
-            let hint_kind = hint.map(|hint| &hint.kind);
             let is_greedy = hint
-                .map(|hint| matches!(hint.kind, TransformHintPartKind::StringGreedy))
+                .map(|hint| matches!(hint, TransformHintPart::StringGreedy))
                 .unwrap_or(false);
 
             if is_greedy {
@@ -235,20 +230,20 @@ where
                 match current {
                     Some(Ok(token)) => {
                         fn into_command_argument_value(
-                            hint_kind: Option<&TransformHintPartKind>,
+                            hint_part: Option<&TransformHintPart>,
                             token: CommandToken,
                         ) -> Option<(Option<String>, CommandArgumentValue)>
                         {
                             match token {
                                 CommandToken::Whitespace(_) => (None),
                                 CommandToken::RawString(value, pat) => {
-                                    let value = match (hint_kind, pat) {
+                                    let value = match (hint_part, pat) {
                                         (
-                                            Some(TransformHintPartKind::Float),
+                                            Some(TransformHintPart::Float),
                                             RawStringPattern::Float | RawStringPattern::Integer,
                                         ) => CommandArgumentValue::F64(value.parse().unwrap()),
                                         (
-                                            Some(TransformHintPartKind::Integer),
+                                            Some(TransformHintPart::Integer),
                                             RawStringPattern::Integer,
                                         ) => CommandArgumentValue::I64(value.parse().unwrap()),
                                         _ => CommandArgumentValue::String(value.to_string()),
@@ -260,12 +255,12 @@ where
                                 }
                                 CommandToken::Named(name, value) => Some((
                                     Some(name.to_string()),
-                                    into_command_argument_value(hint_kind, *value).unwrap().1,
+                                    into_command_argument_value(hint_part, *value).unwrap().1,
                                 )),
                             }
                         }
 
-                        let value = into_command_argument_value(hint_kind, token);
+                        let value = into_command_argument_value(hint, token);
 
                         if let Some((name, value)) = value {
                             let is_named = name.is_some();
