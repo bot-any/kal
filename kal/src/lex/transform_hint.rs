@@ -4,7 +4,7 @@ use crate::CommandOptionValueKind;
 
 /// The kind of [`TransformHintPart`].
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum TransformHintPartKind {
+pub enum TransformHintPart {
     /// Take integer if possible.
     Integer,
 
@@ -18,33 +18,12 @@ pub enum TransformHintPartKind {
     StringGreedy,
 }
 
-impl TransformHintPartKind {
-    /// Make itself greedy if possible.
-    pub fn make_greedy(self) -> Self {
-        match self {
-            TransformHintPartKind::String => TransformHintPartKind::StringGreedy,
-            itself => itself,
-        }
-    }
-}
-
-/// The part of [`TransformHint`] on [`TransformHint::Execute`] or [`TransformHint::SelectOrExecute`].
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct TransformHintPart {
-    /// The kind of the part.
-    pub kind: TransformHintPartKind,
-
-    /// Whether the part can be multiple.
-    /// If this is true, it will try to eat all tokens until it cannot take anymore.
-    pub multiple: bool,
-}
-
 impl TransformHintPart {
     /// Make itself greedy if possible.
     pub fn make_greedy(self) -> Self {
-        Self {
-            multiple: self.multiple,
-            kind: self.kind.make_greedy(),
+        match self {
+            TransformHintPart::String => TransformHintPart::StringGreedy,
+            itself => itself,
         }
     }
 }
@@ -53,22 +32,10 @@ impl From<CommandOptionValueKind> for TransformHintPart {
     fn from(kind: CommandOptionValueKind) -> Self {
         match kind {
             CommandOptionValueKind::Optional(v) => TransformHintPart::from(*v),
-            CommandOptionValueKind::String => TransformHintPart {
-                multiple: false,
-                kind: TransformHintPartKind::String,
-            },
-            CommandOptionValueKind::Integer => TransformHintPart {
-                multiple: false,
-                kind: TransformHintPartKind::Integer,
-            },
-            CommandOptionValueKind::Double => TransformHintPart {
-                multiple: false,
-                kind: TransformHintPartKind::Float,
-            },
-            CommandOptionValueKind::Multiple(v) => TransformHintPart {
-                multiple: true,
-                ..TransformHintPart::from(*v)
-            },
+            CommandOptionValueKind::String => TransformHintPart::String,
+            CommandOptionValueKind::Integer => TransformHintPart::Integer,
+            CommandOptionValueKind::Double => TransformHintPart::Float,
+            CommandOptionValueKind::Multiple(v) => TransformHintPart::from(*v),
         }
     }
 }

@@ -107,7 +107,7 @@
 //!
 //! ```rust
 //! # use kal::Command;
-//! # use kal::lex::{TransformHintProvider, TransformHint, TransformHintPart, TransformHintPartKind};
+//! # use kal::lex::{TransformHintProvider, TransformHint, TransformHintPart};
 //! # use std::collections::HashMap;
 //! #[derive(Command, TransformHintProvider)]
 //! pub enum Hello {
@@ -125,17 +125,11 @@
 //!     TransformHint::Select(HashMap::from_iter([
 //!         (
 //!             "world",
-//!             TransformHint::Execute(vec![TransformHintPart {
-//!                 multiple: false,
-//!                 kind: TransformHintPartKind::String,
-//!             }]),
+//!             TransformHint::Execute(vec![TransformHintPart::String]),
 //!         ),
 //!         (
 //!             "sekai",
-//!             TransformHint::Execute(vec![TransformHintPart {
-//!                 multiple: false,
-//!                 kind: TransformHintPartKind::StringGreedy,
-//!             }]),
+//!             TransformHint::Execute(vec![TransformHintPart::StringGreedy]),
 //!         ),
 //!    ]))
 //! );
@@ -145,9 +139,7 @@ pub use kal_derive::TransformHintProvider;
 pub use label_strip_util::{remove_leading, remove_trailing};
 pub use lexer::{CommandLexError, CommandLexer};
 pub use token::{CommandToken, RawStringPattern};
-pub use transform_hint::{
-    TransformHint, TransformHintPart, TransformHintPartKind, TransformHintProvider,
-};
+pub use transform_hint::{TransformHint, TransformHintPart, TransformHintProvider};
 pub use transformer::{TokenTransformError, TokenTransformer};
 
 mod label_strip_util;
