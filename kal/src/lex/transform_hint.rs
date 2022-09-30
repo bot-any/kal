@@ -65,6 +65,10 @@ impl From<CommandOptionValueKind> for TransformHintPart {
                 multiple: false,
                 kind: TransformHintPartKind::Float,
             },
+            CommandOptionValueKind::Multiple(v) => TransformHintPart {
+                multiple: true,
+                ..TransformHintPart::from(*v)
+            },
         }
     }
 }

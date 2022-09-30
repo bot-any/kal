@@ -36,6 +36,9 @@ pub enum CommandOptionValueKind {
     /// A kind of value that can appear or not
     Optional(Box<CommandOptionValueKind>),
 
+    /// A kind of value that can appear or not
+    Multiple(Box<CommandOptionValueKind>),
+
     /// String value
     String,
 
@@ -55,7 +58,9 @@ impl CommandOptionValueKind {
     /// Make the option value kind as primitive as possible
     pub fn as_primitive(&self) -> CommandOptionValueKind {
         match self {
-            CommandOptionValueKind::Optional(t) => t.as_primitive(),
+            CommandOptionValueKind::Optional(t) | CommandOptionValueKind::Multiple(t) => {
+                t.as_primitive()
+            }
             _ => self.clone(),
         }
     }
@@ -97,5 +102,12 @@ impl CommandOptionValueTy for i64 {
 impl CommandOptionValueTy for f64 {
     fn spec_kind() -> CommandOptionValueKind {
         CommandOptionValueKind::Double
+    }
+}
+
+
+impl<T: CommandOptionValueTy> CommandOptionValueTy for Vec<T> {
+    fn spec_kind() -> CommandOptionValueKind {
+        CommandOptionValueKind::Multiple(Box::new(T::spec_kind()))
     }
 }

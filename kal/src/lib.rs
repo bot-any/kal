@@ -11,6 +11,7 @@
 pub use command::Command;
 pub use command_fragment::{
     CommandArgument, CommandArgumentValue, CommandArgumentValueTypeMismatchError, CommandFragment,
+    TryFromArgumentValue,
 };
 pub use command_spec::{CommandOption, CommandOptionValueKind, CommandOptionValueTy, CommandSpec};
 pub use error::CommandParseError;
