@@ -1,3 +1,5 @@
+use crate::{CommaSeparated, SpaceSeparated};
+
 /// The specification of coomand
 #[derive(Debug, PartialEq)]
 pub struct CommandSpec {
@@ -105,8 +107,13 @@ impl CommandOptionValueTy for f64 {
     }
 }
 
+impl<T: CommandOptionValueTy> CommandOptionValueTy for SpaceSeparated<T> {
+    fn spec_kind() -> CommandOptionValueKind {
+        CommandOptionValueKind::Multiple(Box::new(T::spec_kind()))
+    }
+}
 
-impl<T: CommandOptionValueTy> CommandOptionValueTy for Vec<T> {
+impl<T: CommandOptionValueTy> CommandOptionValueTy for CommaSeparated<T> {
     fn spec_kind() -> CommandOptionValueKind {
         CommandOptionValueKind::Multiple(Box::new(T::spec_kind()))
     }
