@@ -16,6 +16,6 @@ impl CommandConfig {
     pub fn rename_or(&self, ident: &Ident) -> String {
         self.rename
             .clone()
-            .unwrap_or(rename_to_kebab_case(ident.to_string()))
+            .unwrap_or_else(|| rename_to_kebab_case(ident.to_string()))
     }
 }

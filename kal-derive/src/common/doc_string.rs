@@ -14,7 +14,7 @@ pub fn join_doc_string(attrs: &[Attribute]) -> String {
         }
     }
     result
-        .split("\n")
+        .split('\n')
         .map(|s| s.trim())
         .filter(|s| !s.is_empty())
         .collect::<Vec<_>>()

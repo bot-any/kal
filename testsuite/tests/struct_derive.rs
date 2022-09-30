@@ -22,6 +22,7 @@ fn basic_struct() {
 fn required_arguments() {
     /// test struct
     #[derive(Command)]
+    #[allow(dead_code)]
     struct Test {
         /// String
         s: String,
@@ -67,6 +68,7 @@ fn required_arguments() {
 fn optional_arguments() {
     /// test struct
     #[derive(Command)]
+    #[allow(dead_code)]
     struct Test {
         /// String
         s: Option<String>,

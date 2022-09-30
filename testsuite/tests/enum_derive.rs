@@ -5,6 +5,7 @@ use pretty_assertions::assert_eq;
 fn basic_enum() {
     /// basic struct
     #[derive(Command)]
+    #[allow(dead_code)]
     enum Basic {
         /// a
         A,
@@ -44,6 +45,7 @@ fn struct_in_enum() {
 
     /// test struct
     #[derive(Command)]
+    #[allow(dead_code)]
     enum Test {
         A(A),
 
@@ -78,6 +80,7 @@ fn struct_in_enum() {
 fn struct_style_enum() {
     /// a
     #[derive(Command)]
+    #[allow(dead_code)]
     struct A {
         /// s
         s: String,
@@ -85,6 +88,7 @@ fn struct_style_enum() {
 
     /// test struct
     #[derive(Command)]
+    #[allow(dead_code)]
     enum Test {
         A(A),
 
